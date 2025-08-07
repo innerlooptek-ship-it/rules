@@ -48,6 +48,7 @@ public class IQEService implements SchedulingConstants {
     private final AnswerOptionsRepository answerOptionsRepo;
     private final RedisCacheService redisCacheService;
     private final QuestionnaireDetailsRepository questionnaireDetailsRepo;
+    private final AuditingService auditingService;
 
     private static final Logger logger = LoggerFactory.getLogger(IQEService.class);
 
@@ -251,16 +252,16 @@ public class IQEService implements SchedulingConstants {
                                         iqeOutPut.setRulesByFlow(rulesByFlowData);
                                         iqeOutPut.setActions(actionsData);
 
-                                        return actionsRepo.findByActionId(actionId)
+                                        return actionsRepo.findActiveByActionId(actionId)
                                                 .next()
                                                 .flatMap(actions1 ->
-                                                        questionsRepo.findByActionId(actionId)
+                                                        questionsRepo.findActiveByActionId(actionId)
                                                                 .collectList()
                                                                 .flatMap(questions ->
-                                                                        answerOptionsRepo.findByActionId(actionId)
+                                                                        answerOptionsRepo.findActiveByActionId(actionId)
                                                                                 .collectList()
                                                                                 .flatMap(answerOptions ->
-                                                                                        questionnaireDetailsRepo.findByActionId(actionId)
+                                                                                        questionnaireDetailsRepo.findActiveByActionId(actionId)
                                                                                                 .collectList()
                                                                                                 .flatMap(details -> {
 
@@ -412,7 +413,7 @@ public class IQEService implements SchedulingConstants {
                                                                        Map<String, String> headers) {
         QuestionareRequest iqeOutPut = new QuestionareRequest();
         return Mono.deferContextual(ctx -> {
-                    Mono<Questions> questionData = questionsRepo.findByActionIdAndQuestionId(actionId, questionId)
+                    Mono<Questions> questionData = questionsRepo.findActiveByActionIdAndQuestionId(actionId, questionId)
                             .map(questions -> Questions.builder()
                                     .actionId(questions.getActionId())
                                     .questionId(questions.getQuestionId())
@@ -426,7 +427,7 @@ public class IQEService implements SchedulingConstants {
                                     .text(questions.getQuestionText())
                                     .sequenceId(questions.getSequence_id()).build());
 
-                    Flux<AnswerOptions> answerOptionData = answerOptionsRepo.findByActionIdAndQuestionId(actionId, questionId)
+                    Flux<AnswerOptions> answerOptionData = answerOptionsRepo.findActiveByActionIdAndQuestionId(actionId, questionId)
                             .map(answerOptions -> AnswerOptions.builder()
                                     .actionId(answerOptions.getActionId())
                                     .questionId(answerOptions.getQuestionId())

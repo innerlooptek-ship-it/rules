@@ -1,6 +1,7 @@
 package com.cvshealth.digital.microservice.iqe.entity;
 
 import com.cvshealth.digital.microservice.iqe.constants.DBConstants;
+import com.cvshealth.digital.microservice.iqe.udt.AuditEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -58,5 +59,13 @@ public class QuestionsEntity {
     private String skiplegend;
     @Column("sub_context")
     private String subcontext;
+    
+    @Column("audit")
+    @Frozen
+    private AuditEntity audit;
+    
+    @Column("is_active")
+    @Builder.Default
+    private boolean isActive = true;
 
 }
