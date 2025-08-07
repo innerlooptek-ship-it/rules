@@ -1,0 +1,14 @@
+package rules;
+
+import com.cvshealth.digital.microservice.iqe.model.RulesDetails;
+
+
+dialect  "mvel"
+
+rule "test"
+salience 0
+    when
+        rulesDetails : RulesDetails(serviceDescription =="Allergy Treatment" && schedulingCategory == "Illness, Infection or Injury");
+    then
+        rulesDetails.setQuestions("");
+end;

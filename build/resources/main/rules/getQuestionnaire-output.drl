@@ -1,0 +1,22 @@
+template header
+ruleId
+salience
+condition
+actionId
+
+import com.cvshealth.digital.microservice.iqe.model.RulesDetails;
+
+
+template "tmp2"
+
+rule "@{ruleId}"
+salience @{salience}
+activation-group "active"
+  dialect "mvel"
+  when
+   rulesDetails : RulesDetails(@{condition});
+  then
+   rulesDetails.setActionId("@{actionId}");
+end
+
+end template

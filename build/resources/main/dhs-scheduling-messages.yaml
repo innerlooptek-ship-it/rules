@@ -1,0 +1,19 @@
+# --------------------
+# Custom Messages
+# --------------------
+error:
+  messages:
+    common:
+      BAD_REQUEST: common Bad Request
+      UNPROCESSABLE_ENTITY: common Un-processable Entity
+      INTERNAL_SERVER_ERROR: common Internal Server error occurred
+      SERVICE_UNAVAILABLE: common Backend Service not available
+      DOMAIN_ERROR: common Backend Service returned error
+      UNAUTHORIZED: common Authorization token is not valid
+      FORBIDDEN: common Forbidden
+      GATEWAY_TIMEOUT: common Gateway Timeout
+      READ_TIMEOUT: common Read Timeout
+      BAD_GATEWAY: common Bad Gateway
+      CONFLICT: common Conflict
+      NOT_FOUND: common Not Found
+      FAILED_DEPENDENCY: common Failed Dependency
