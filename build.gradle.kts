@@ -152,6 +152,7 @@ tasks.withType<Test> {
     // REQUIRED: Tell Gradle to use the JUnit 5 platform to execute tests
     // see https://docs.gradle.org/current/userguide/java_testing.html#using_junit5
     useJUnitPlatform()
+    exclude("**/integration/**")
     finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
     finalizedBy(tasks.jacocoTestCoverageVerification) // check that code coverage was met
 

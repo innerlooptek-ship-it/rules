@@ -47,6 +47,7 @@ public class IQEService implements SchedulingConstants {
     private final RulesByFlowRepository rulesByFlowRepo;
     private final AnswerOptionsRepository answerOptionsRepo;
     private final RedisCacheService redisCacheService;
+    private final FallbackCacheService fallbackCacheService;
     private final QuestionnaireDetailsRepository questionnaireDetailsRepo;
 
     private static final Logger logger = LoggerFactory.getLogger(IQEService.class);
@@ -365,37 +366,49 @@ public class IQEService implements SchedulingConstants {
     public Mono<QuestionareRequest> questionnaireByFlowAndCondition(RulesDetails rulesDetails, QuestionareRequest iqeOutPut,
                                                                     Map<String, String> headers) {
         return Mono.deferContextual(ctx -> {
-                    Flux<RulesByFlowEntity> ruleAttributesFlux = rulesByFlowRepo.findByFlow(rulesDetails.getFlow());
-
-                    ObjectDataCompiler compiler = new ObjectDataCompiler();
-
-                    return ruleAttributesFlux.collectList()
-                            .flatMap(ruleAttributesList -> {
-                                if (ruleAttributesList != null && !ruleAttributesList.isEmpty()) {
-                                    String generatedDRL = compiler.compile(ruleAttributesList, getClass().getClassLoader()
-                                            .getResourceAsStream(DroolConfig.QUESTIONNAIRE_TEMPLATE_FILE_IQE));
-                                    KieServices kieServices = KieServices.Factory.get();
-                                    KieHelper kieHelper = new KieHelper();
-                                    byte[] b1 = generatedDRL.getBytes();
-                                    Resource resource1 = kieServices.getResources().newByteArrayResource(b1);
-                                    kieHelper.addResource(resource1, ResourceType.DRL);
-                                    KieBase kieBase = kieHelper.build();
-                                    KieSession kieSession = kieBase.newKieSession();
-                                    kieSession.insert(rulesDetails);
-                                    kieSession.fireAllRules(1);
-                                    kieSession.dispose();
-                                    if (rulesDetails.getActionId() != null && !rulesDetails.getActionId().isEmpty()) {
-                                        log.info("Rules Details: {}", rulesDetails);
-                                        return questionnaireByActionId(rulesDetails.getActionId(), iqeOutPut);
-                                    } else {
-                                        return Mono.just(iqeOutPut);
-                                    }
-                                } else {
-                                    return Mono.just(iqeOutPut);
-                                }
+                    return rulesByFlowRepo.findByFlow(rulesDetails.getFlow())
+                            .collectList()
+                            .doOnSuccess(rules -> fallbackCacheService.markCassandraHealthy())
+                            .flatMap(ruleAttributesList -> processRulesAndGetQuestionnaire(ruleAttributesList, rulesDetails, iqeOutPut))
+                            .onErrorResume(e -> {
+                                log.warn("Cassandra unavailable for flow {}, falling back to cache: {}", rulesDetails.getFlow(), e.getMessage());
+                                fallbackCacheService.markCassandraUnhealthy();
+                                return fallbackCacheService.getRulesByFlow(rulesDetails.getFlow())
+                                        .flatMap(cachedRules -> processRulesAndGetQuestionnaire(cachedRules, rulesDetails, iqeOutPut))
+                                        .onErrorResume(fallbackError -> {
+                                            log.error("Both Cassandra and fallback cache failed for flow {}: {}", rulesDetails.getFlow(), fallbackError.getMessage());
+                                            return Mono.error(new RuntimeException("Service temporarily unavailable"));
+                                        });
                             });
-                })
-                .onErrorResume(e -> Mono.error(new ServerErrorException(FAILURE_CD, e.getMessage())));
+                });
+    }
+
+    private Mono<QuestionareRequest> processRulesAndGetQuestionnaire(List<RulesByFlowEntity> ruleAttributesList, 
+                                                                    RulesDetails rulesDetails, 
+                                                                    QuestionareRequest iqeOutPut) {
+        if (ruleAttributesList != null && !ruleAttributesList.isEmpty()) {
+            ObjectDataCompiler compiler = new ObjectDataCompiler();
+            String generatedDRL = compiler.compile(ruleAttributesList, getClass().getClassLoader()
+                    .getResourceAsStream(DroolConfig.QUESTIONNAIRE_TEMPLATE_FILE_IQE));
+            KieServices kieServices = KieServices.Factory.get();
+            KieHelper kieHelper = new KieHelper();
+            byte[] b1 = generatedDRL.getBytes();
+            Resource resource1 = kieServices.getResources().newByteArrayResource(b1);
+            kieHelper.addResource(resource1, ResourceType.DRL);
+            KieBase kieBase = kieHelper.build();
+            KieSession kieSession = kieBase.newKieSession();
+            kieSession.insert(rulesDetails);
+            kieSession.fireAllRules(1);
+            kieSession.dispose();
+            if (rulesDetails.getActionId() != null && !rulesDetails.getActionId().isEmpty()) {
+                log.info("Rules Details: {}", rulesDetails);
+                return questionnaireByActionId(rulesDetails.getActionId(), iqeOutPut);
+            } else {
+                return Mono.just(iqeOutPut);
+            }
+        } else {
+            return Mono.just(iqeOutPut);
+        }
     }
 
 
