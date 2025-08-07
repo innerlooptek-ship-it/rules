@@ -71,12 +71,12 @@ spring:
         set-keyspace-timeout: 25000
         max-orphan-requests: 256
   cassandra:
-    contact-points:
+    contact-points: localhost
     port: 9042
     keyspace-name: iqe
-    local-datacenter:
-    username:
-    password:
+    local-datacenter: datacenter1
+    # username:
+    # password:
     request:
       consistency: LOCAL_QUORUM
       timeout: 25000
