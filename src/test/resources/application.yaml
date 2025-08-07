@@ -1,0 +1,14 @@
+spring:
+  data:
+    cassandra:
+      keyspace-name: iqe
+      schema-action: NONE
+      local-datacenter: datacenter1
+      contact-points: localhost
+      port: 9042
+      
+logging:
+  level:
+    root: INFO
+    org.springframework: WARN
+    com.cvshealth: DEBUG

@@ -231,6 +231,8 @@ public class IQERepoOrchestrator {
                     .actionText(actionsData.getActionText())
                     .questionId(actionsData.getQuestionIds())
                     .detailId(actionsData.getDetailIds())
+                    .audit(audit)
+                    .isActive(true)
                     .build();
 
             List<Questions> questionsDTOList = questionareRequest.getQuestions();
@@ -285,6 +287,13 @@ public class IQERepoOrchestrator {
                 .subContext(details.getSubContext())
                 .sequenceId(details.getSequenceId())
                 .title(details.getTitle())
+                .audit(AuditEntity.builder()
+                        .createdTs(LocalDateTime.now(ZoneOffset.UTC).format(DATE_TIME_MILLI_SECONDS_FORMATTER))
+                        .createdBy(DEFAULT_USER)
+                        .modifiedTs(LocalDateTime.now(ZoneOffset.UTC).format(DATE_TIME_MILLI_SECONDS_FORMATTER))
+                        .modifiedBy(DEFAULT_USER)
+                        .build())
+                .isActive(true)
                 .build();
         return Flux.just(questionDetails);
     }
@@ -312,6 +321,13 @@ public class IQERepoOrchestrator {
                 .skiplegend(questionsDTO.getSkipLegend())
                 .subcontext(questionsDTO.getSubContext())
                 .characterLimit(questionsDTO.getCharacterLimit() != null ? questionsDTO.getCharacterLimit() : 0)
+                .audit(AuditEntity.builder()
+                        .createdTs(LocalDateTime.now(ZoneOffset.UTC).format(DATE_TIME_MILLI_SECONDS_FORMATTER))
+                        .createdBy(DEFAULT_USER)
+                        .modifiedTs(LocalDateTime.now(ZoneOffset.UTC).format(DATE_TIME_MILLI_SECONDS_FORMATTER))
+                        .modifiedBy(DEFAULT_USER)
+                        .build())
+                .isActive(true)
                 .build();
 
         Flux<QuestionsEntity> questionsFlux = Flux.just(question);
@@ -352,6 +368,13 @@ public class IQERepoOrchestrator {
                         .relatedQuestions(answerOptionDTO.getRelatedQuestionIds())
                         .sequence_id(answerOptionDTO.getSequenceId())
                         .additionalDetailText(answerOptionDTO.getAdditionalDetailText())
+                        .audit(AuditEntity.builder()
+                                .createdTs(LocalDateTime.now(ZoneOffset.UTC).format(DATE_TIME_MILLI_SECONDS_FORMATTER))
+                                .createdBy(DEFAULT_USER)
+                                .modifiedTs(LocalDateTime.now(ZoneOffset.UTC).format(DATE_TIME_MILLI_SECONDS_FORMATTER))
+                                .modifiedBy(DEFAULT_USER)
+                                .build())
+                        .isActive(true)
                         .build())
                 .collect(Collectors.toList());
 
