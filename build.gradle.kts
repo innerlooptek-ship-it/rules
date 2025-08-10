@@ -61,9 +61,7 @@ dependencies {
     implementation("org.drools:drools-io:10.0.0")
     implementation("org.drools:drools-decisiontables:10.0.0")
     implementation("org.drools:drools-mvel:10.0.0")
-    implementation("org.projectlombok:lombok:1.18.28")
     implementation("org.mapstruct:mapstruct:1.5.5.Final")
-    implementation("org.apache.commons:commons-lang3:3.14.0")
     implementation("org.apache.commons:commons-compress:1.26.0")
 //    implementation("com.cvshealth.digital.framework:digital-spring-boot-starter-web:2.0.8")
 
@@ -96,14 +94,12 @@ dependencies {
     }
     testImplementation("org.jbehave:jbehave-spring:5.2.0")
     testImplementation("org.jbehave:jbehave-gherkin:5.2.0")
-    testImplementation("org.projectlombok:lombok:1.18.28")
 
     implementation ("org.springframework.kafka:spring-kafka:3.2.9")
     implementation ("org.apache.kafka:kafka-clients:3.9.1")
     implementation("io.netty:netty-handler:4.1.118.Final")
     implementation("org.eclipse.jdt:ecj:3.33.0")
     implementation("org.apache.commons:commons-lang3:3.18.0")
-
 
     api("org.springframework.boot:spring-boot-starter-data-cassandra-reactive:3.3.7"){
         exclude("com.fasterxml.jackson.core", "jackson-core")
@@ -113,7 +109,6 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.16.1")
     implementation("commons-codec:commons-codec:1.16.1")
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
-    implementation("org.apache.commons:commons-lang3:3.18.0")
     implementation("org.modelmapper:modelmapper:2.4.2")
     implementation("org.apache.commons:commons-collections4:4.4")
     implementation("io.netty:netty-handler:4.1.118.Final")
@@ -126,7 +121,6 @@ dependencies {
     testImplementation("org.jbehave:jbehave-core:5.2.0")
     testImplementation("org.jbehave:jbehave-spring:5.2.0")
     testImplementation("org.jbehave:jbehave-gherkin:5.2.0")
-    testImplementation("org.projectlombok:lombok:1.18.28")
     testImplementation("io.projectreactor:reactor-test:3.6.4")
 }
 
