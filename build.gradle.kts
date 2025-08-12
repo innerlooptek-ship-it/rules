@@ -128,6 +128,9 @@ dependencies {
     testImplementation("org.jbehave:jbehave-gherkin:5.2.0")
     testImplementation("org.projectlombok:lombok:1.18.28")
     testImplementation("io.projectreactor:reactor-test:3.6.4")
+    implementation("com.google.cloud:google-cloud-storage:2.36.1")
+    implementation("com.google.cloud:google-cloud-core:2.36.1")
+    implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
 }
 
 group = "com.cvshealth.digital.microservice.iqe"

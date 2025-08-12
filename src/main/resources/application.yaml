@@ -44,6 +44,13 @@ service:
       - accept: application/json
     redisFlag: false
     cacheType: genericcache_1h_noextend
+  gcs-fallback:
+    enabled: false
+    bucket-name: "iqe-fallback-bucket"
+    key-prefix: "iqe-fallback/"
+    credentials-path: ""
+    timeout-seconds: 30
+    project-id: ""
 
 
 # Spring Configuration
