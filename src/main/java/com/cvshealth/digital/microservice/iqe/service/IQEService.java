@@ -47,6 +47,7 @@ public class IQEService implements SchedulingConstants {
     private final RulesByFlowRepository rulesByFlowRepo;
     private final AnswerOptionsRepository answerOptionsRepo;
     private final RedisCacheService redisCacheService;
+    private final RedisCacheFallbackService redisCacheFallbackService;
     private final QuestionnaireDetailsRepository questionnaireDetailsRepo;
 
     private static final Logger logger = LoggerFactory.getLogger(IQEService.class);
@@ -183,6 +184,14 @@ public class IQEService implements SchedulingConstants {
         Map<String, String> eventMap = new HashMap<>();
         log.debug(ENTRY_LOG, methodName);
 
+        return redisCacheFallbackService.getQuestionnaireWithFallback(
+            actionId, 
+            iqeOutPut,
+            () -> buildQuestionnaireFromCassandra(actionId, iqeOutPut, eventMap)
+        );
+    }
+
+    private Mono<QuestionareRequest> buildQuestionnaireFromCassandra(String actionId, QuestionareRequest iqeOutPut, Map<String, String> eventMap) {
         return Mono.deferContextual(ctx -> redisCacheService.getDataFromRedis(IQE_QUESTIONNAIRE, actionId, eventMap)
                         .flatMap(object -> {
                             if (object != null) {
@@ -308,7 +317,7 @@ public class IQEService implements SchedulingConstants {
                                                                 )
                                                 )
                                                 .onErrorResume(e -> {
-                                                    log.info("Exception occurred in the method {} and error {}", methodName, e.getMessage());
+                                                    log.info("Exception occurred in the method buildQuestionnaireFromCassandra and error {}", e.getMessage());
                                                     return Mono.just(iqeOutPut);
                                                 });
                                     })
@@ -319,7 +328,7 @@ public class IQEService implements SchedulingConstants {
                                             })
                                             .subscribe());
                         }))
-                        .doOnSuccess(result -> log.debug(EXIT_LOG, methodName)))
+                        .doOnSuccess(result -> log.debug(EXIT_LOG, "buildQuestionnaireFromCassandra")))
                 .onErrorResume(e -> Mono.just(new QuestionareRequest()));
     }
 
