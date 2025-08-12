@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class StaticJsonConfig {
     
     private boolean enabled = false;
-    private String dataDirectory = "/tmp/iqe-fallback";
+    private String dataDirectory = "src/main/resources/fallback";
     private boolean memoryCache = true;
     private int maxCacheSize = 1000;
     private long cacheExpirationMinutes = 60;
