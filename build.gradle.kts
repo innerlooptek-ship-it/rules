@@ -50,6 +50,8 @@ dependencies {
         exclude(group = "ch.qos.logback", module = "logback-classic")
         exclude(group = "ch.qos.logback", module = "logback-core")
     }
+    implementation ("org.springframework.boot:spring-boot-starter-graphql")
+    implementation("commons-validator:commons-validator:1.7")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus:1.12.0")
     implementation("com.typesafe:config:1.4.3")

@@ -27,7 +27,28 @@ public class WebClientConfig {
                 .build();
         return webClient;
     }
+    @Bean(name = "iQeMcCoreQuestionnarie")
+    public WebClient webClientIQEMcCoreQuestionnarie() {
+        ApiConfigs.ApiConfig config = apiConfig.getConfigs().get("iqe").get("getIQEMcCoreQuestionnarie");
+        return WebClient.builder()
+                .baseUrl(config.getBaseUrl())
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .clientConnector(addTimeout(config.getReadTimeout(),config.getConnectionTimeout()))
+                .build();
 
+    }
+    @Bean(name = "dynamicFlowConditionEvaluation")
+    public WebClient webClientIQEMcCoreGetQuestionnarie() {
+        ApiConfigs.ApiConfig config = apiConfig.getConfigs().get("iqe").get("dynamicFlowConditionEvaluation");
+        return WebClient.builder()
+                .baseUrl(config.getBaseUrl())
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .clientConnector(addTimeout(config.getReadTimeout(),config.getConnectionTimeout()))
+                .build();
+
+    }
     @Bean(name = "webClientBuilderGetAppointmentData")
     public WebClient webClientBuilderGetAppointmentData() {
         ApiConfigs.ApiConfig config = apiConfig.getConfigs().get("appointment").get("getAppointment");
