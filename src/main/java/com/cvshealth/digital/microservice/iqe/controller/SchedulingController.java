@@ -23,10 +23,7 @@ import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.*;
 import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.TEST_TREAT;
@@ -42,7 +39,7 @@ public class SchedulingController {
     private final LoggingUtils logUtils;
     private final MessageConfig messagesConfig;
     private final SchedulingMetricsService schedulingMetricsService;
-    private final Map<Integer, List<String>> ELIGIBLE_REASON_IDS = Map.of(86,List.of(),30,List.of("48"));
+
     private String isVaccineIntakeEnabled;
     @QueryMapping
     public Mono<QuestionnaireUIResponse.GetQuestionnaire> getSchedulingQuestionnaire(

@@ -51,10 +51,29 @@ spring:
   application:
     name: dhs-scheduling-iqe-service
     version: v1
+  config:
+    import:
+      - classpath:/dhs-scheduling-messages.yaml
+
   mvc:
     throw-exception-if-no-handler-found: true
     pathmatch:
       matching-strategy: ant_path_matcher
+  web:
+    resources:
+      add-mappings: false
+    main:
+      web-application-type: reactive
+      banner-mode: off
+      allow-bean-definition-overriding: true
+    jpa:
+      open-in-view: false
+    graphql:
+      path: /dhs/scheduling/graphql
+      graphiql:
+        enabled: true
+    webflux:
+      base-path: ""
   data:
     cassandra:
       # session-name: cvs-planogram-svc
@@ -84,9 +103,7 @@ spring:
       init-query-timeout: 25000
       connect-timeout: 25000
 
-  web:
-    resources:
-      add-mappings: false
+
 
 # Logging
 logging:

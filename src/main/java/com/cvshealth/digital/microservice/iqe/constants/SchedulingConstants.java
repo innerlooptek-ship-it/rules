@@ -3,10 +3,15 @@ package com.cvshealth.digital.microservice.iqe.constants;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public interface SchedulingConstants {
-
-	public static final String AUTH_HEADER = "Authoriation Header";
+    // Java
+    public static final Map<Integer, List<String>> ELIGIBLE_REASON_IDS =
+            java.util.Collections.unmodifiableMap(new java.util.HashMap<Integer, List<String>>() {{
+                put(86, java.util.Collections.emptyList());
+                put(30, java.util.Arrays.asList("48", "132"));
+            }});	public static final String AUTH_HEADER = "Authoriation Header";
 	public static final String CACHE_FLUSHED = "Cache-Flushed";
 	public static final String CACHE_VALUE = "Cache-Value";
 	public static final String LOB_HEALTH = "health";
