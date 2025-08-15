@@ -288,6 +288,29 @@ public class SchedulingService implements  ISchedulingService{
         return age < minorAge;
     }
 
+    private static Set<String> findCommonLastElements(List<QuestionnaireUIResponse.QuestionnaireData> patientDataList) {
+        if (patientDataList == null || patientDataList.isEmpty()) {
+            return new HashSet<>();
+        }
+        
+        Set<String> lastElementCandidates = null;
+        
+        for (QuestionnaireUIResponse.QuestionnaireData data : patientDataList) {
+            if (data.getQuestions() != null && !data.getQuestions().isEmpty()) {
+                List<QuestionnaireUIResponse.Question> questions = data.getQuestions();
+                String lastQuestionId = questions.get(questions.size() - 1).getId();
+                
+                if (lastElementCandidates == null) {
+                    lastElementCandidates = new HashSet<>();
+                    lastElementCandidates.add(lastQuestionId);
+                } else {
+                    lastElementCandidates.retainAll(Set.of(lastQuestionId));
+                }
+            }
+        }
+        
+        return lastElementCandidates != null ? lastElementCandidates : new HashSet<>();
+    }
 
 public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeContext(QuestionnaireUIRequest.ScheduleQuestionnaireInput questionnaireInput,
                                                                                        QuestionnaireUIRequest.QuestionnaireDataInput dataInput,
@@ -352,6 +375,9 @@ public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeC
                             for (QuestionnaireUIResponse.QuestionnaireData questionnaireData : patientDataList) {
                                 combinedQuestions.addAll(questionnaireData.getQuestions());
                             }
+                            
+                            Set<String> commonLastElements = findCommonLastElements(patientDataList);
+                            
                             QuestionnaireUIResponse.QuestionnaireData mergedData = new QuestionnaireUIResponse.QuestionnaireData();
                             if(!patientDataList.isEmpty()) {
                                 for (QuestionnaireUIResponse.Question question : combinedQuestions) {
@@ -361,9 +387,27 @@ public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeC
                                 }
 
                                 List<QuestionnaireUIResponse.Question> mergedQuestions = new ArrayList<>(mergedMap.values());
-                                mergedQuestions.sort(Comparator.comparingInt(QuestionnaireUIResponse.Question::getSequenceId));
+                                
+                                List<QuestionnaireUIResponse.Question> regularQuestions = new ArrayList<>();
+                                List<QuestionnaireUIResponse.Question> lastElementQuestions = new ArrayList<>();
+                                
+                                for (QuestionnaireUIResponse.Question question : mergedQuestions) {
+                                    if (commonLastElements.contains(question.getId())) {
+                                        lastElementQuestions.add(question);
+                                    } else {
+                                        regularQuestions.add(question);
+                                    }
+                                }
+                                
+                                regularQuestions.sort(Comparator.comparingInt(QuestionnaireUIResponse.Question::getSequenceId));
+                                lastElementQuestions.sort(Comparator.comparingInt(QuestionnaireUIResponse.Question::getSequenceId));
+                                
+                                List<QuestionnaireUIResponse.Question> finalQuestions = new ArrayList<>();
+                                finalQuestions.addAll(regularQuestions);
+                                finalQuestions.addAll(lastElementQuestions);
+                                
                                 mergedData = patientDataList.get(0);
-                                mergedData.setQuestions(mergedQuestions);
+                                mergedData.setQuestions(finalQuestions);
                             }
                             return mergedData;
                         })
