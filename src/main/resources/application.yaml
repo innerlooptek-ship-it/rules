@@ -166,8 +166,56 @@ management:
   metrics:
     tags:
       application: dhs-scheduling-iqe-service
+api:
+  configs:
+    iqe:
+      getIQEMcCoreQuestionnarie:
+        baseUrl: https://internal-uat-test-east.digital-healthservices.cvs.com/schedule/iqe/v1/getquestionnairerules
+        readTimeout: 3000
+        connectionTimeout: 3000
+      dynamicFlowConditionEvaluation:
+        baseUrl: https://uat-test-east.digital-healthservices.cvs.com/schedule/iqe/v1/questionnaires/dynamic-flow-condition-evaluation
+        readTimeout: 3000
+        connectionTimeout: 3000
+    appointment:
+      getAppointment:
+              baseUrl: http://localhost:21139
+              uri: /schedule/core/v1/appointmentdata
+              readTimeout: 1000
+              connectionTimeout: 1000
 
 
+feature:
+  live:
+    getEligibleVaccinesExpanded: true
+    getEligibleVaccinesCareGaps: false
+    mcCareGap: true
+    enableVmAppointmentStatus: false
+    checkInApptStatusEnabled: true
+    isInsuranceDomainSavePatientInsuranceEnabled: true
+    directEPHFailureToEPIC: true
+    enableSchedulingConsents: true
+    mcGroupScheduling: true
+    isStateRestrictedEnabled: true
+
+state-minor-age-limit:
+  config:
+    AL: 19
+    NE: 19
+    MS: 21
+    default: 18
+
+cvs:
+  feature:
+    isEvc: "false"
+    isSLCapability: true
+    isGetEligibleVaccinesV2Enabled: true
+    isVaccineIntakeEnabled: "true"
+    isVMAppointmentDetailsEnabled: true
+    enableProviderApptCancel: true
+    isLogNeeded: true
+    isCaptureInsuranceSchedulingEnabled: true
+    isMCVaccineIntakeFormEnabled: true
 
 #app related data
 app:
@@ -188,11 +236,3 @@ shortid:
   length: 6
 
 
-api:
-  configs:
-    appointment:
-      getAppointment:
-        baseUrl: http://localhost:21139
-        uri: /schedule/core/v1/appointmentdata
-        readTimeout: 1000
-        connectionTimeout: 1000

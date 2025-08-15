@@ -1,0 +1,2900 @@
+directive @extends on INTERFACE | OBJECT
+directive @external on FIELD_DEFINITION | OBJECT
+directive @key(fields: String!, resolvable: Boolean = true) repeatable on INTERFACE | OBJECT
+directive @requires(fields: String!) on FIELD_DEFINITION
+
+type Query {
+  getAppointments(id: String, idType: String, appointmentsFilterCriteriaInput:AppointmentsFilterCriteriaInput, profile:EnrollProfile): AppointmentsInfo
+  getUpcomingAppointments(id: String, idType: String, appointmentsFilterCriteriaInput:AppointmentsFilterCriteriaInput, profile:EnrollProfile): UpcomingAppointments
+  getUpcomingAppointmentsForMFAUser(mfaToken:String!, appointmentsFilterCriteriaInput:AppointmentsFilterCriteriaInput): UpcomingAppointments
+  getUpcomingAppointmentsXid(id: String, idType: String, upcomingAppointmentsxidInput:UpcomingAppointmentsxidInput): UpcomingAppointments
+  getUpcomingAppointmentsXidCampaign(id: String, idType: String, xid:String, appointmentsFilterCriteriaInput:AppointmentsFilterCriteriaInput): UpcomingAppointments
+  getLocations(id: String, idType: String,preferredStore:PreferredStore, searchCriteriaInput:SearchCriteriaInput, filterCriteriaInput:FilterCriteriaInput, sortCriteriaInput:SortCriteriaInput):SearchLocations
+  getProviderTimeslots(id: String, idType: String):SearchLocations
+  getProviders(id: String, idType: String, searchCriteriaInput:SearchCriteriaInput, filterCriteriaInput:FilterCriteriaInput, sortCriteriaInput:SortCriteriaInput):SearchProviders
+  getAvailableTimeSlots(id: String, idType: String, availableTimeSlotsInput: AvailableTimeSlotsInput): AvailableTimeSlots
+  getVaccineEligibility(vaccineEligibilityInput: VaccineEligibilityInput): VaccineEligibility
+  getEligibleVaccinesForAuthUser(id: String, idType: String,flow: String, userToken: String, eligibleVaccinesInput:EligibleVaccinesInput): PatientsEligibleVaccines
+  getEligibleVaccinesForMFAUser(mfaToken: String!,flow: String, userToken: String, eligibleVaccinesInput:EligibleVaccinesInput): PatientsEligibleVaccines
+  getEligibleVaccinesForGuestUser(dob: [String!]!, flow: String, userToken: String, eligibleVaccinesInput:EligibleVaccinesInput): PatientsEligibleVaccines
+  getEligibleVaccinesForXid(id: String, idType: String, xid:String, flow:String): PatientsEligibleVaccines
+  getEligibleVaccinesForAuthUserV2(id: String, idType: String,flow: String, userToken: String): PatientsEligibleVaccines
+  getEligibleVaccinesForMFAUserV2(mfaToken: String!,flow: String, userToken: String): PatientsEligibleVaccines
+  getEligibleVaccinesForGuestUserV2(dob: [String!]!, flow: String, userToken: String): PatientsEligibleVaccines
+  getEligibleVaccinesForXidV2(id: String, idType: String, xid:String, flow:String): PatientsEligibleVaccines
+  getConsents(id: String, idType: String, consentInput:ScheduleConsentInput!): Consent
+  getSchedulingQuestionnaire(id: String, idType: String, questionnaireInput:ScheduleQuestionnaireInput!): Questionnaire
+  getUserSchedule(id: String, idType: String, checkDuplicate: Boolean): UserSchedule
+  getAvailableDatesByClinics(id: String, idType: String, getAvailableDatesRequest:GetAvailableDatesByClinicsRequest): GetAvailableDatesByClinicsResponse
+  getSlotCountByDates(id: String, idType: String, slotCountByDatesInput: SlotCountByDatesInput): GetSlotCountByDatesResponse
+  verifyXid(id:String, idType: String, verifyXidInput: VerifyXidInput!): VerifyXid
+  getStores(searchText: String, state: String, latitude: String, longitude: String, filterInput: FilterInput!): StoreOutput
+  getSchedulingConsents(id: String, idType: String, consentInput:SchedulingGetConsentInput!,profile:EnrollProfile): GetConsent
+  allVisitCodes(id: String, idType: String, allVisitCodesInput: AllVisitCodesInput): AllVisitCodes
+  checkEntitlement(id: String, idType: String, entitlementInput: EntitlementInput!): Entitlement
+  getPaymentMode(flow: FlowType , appointmentId: String , id: String, idType: String): PaymentModeResponse
+  getPreferredPharmacy( id: String, idType: String,getPreferredPharmacyInput:GetPreferredPharmacyInput) :PreferredPharmacy
+  getMSFTOAuthToken(id: String, idType: String): MSFTOAuthToken
+  typeAheadAddressPredictions(request: TypeAheadRequest!): TypeAheadResponse
+  fetchPreciselyToken: PreciselyTokenResponse
+  getClinicVaccineInfo(id: String, idType: String, clinicDetailsInput: ClinicDetailsInput!): ClinicVaccineInfo
+  oneClickLocator(id: String, idType: String, oneClickLocatorInput: OneClickLocatorInput): OneClickLocator
+  groupInfo(appointmentId: String, xid: String): JSON
+  codeGenerator(getCodeRequest: GetCodeRequest!): GetCodeResponse
+}
+
+type Mutation {
+  reserveAndConfirmAppointment(id: String, idType: String, schedulingInput: SchedulingInput) : ScheduleAppointment
+  saveUserAppointmentInfo(id: String, idType: String, schedulingInput: SchedulingInput): SoftReservation
+  confirmAppointment(id: String, idType: String, confirmAppointmentInput: ConfirmAppointmentInput!): ScheduleAppointment
+  reScheduleAppointment(id: String, idType: String, reScheduleAppointmentInput: ReScheduleAppointmentInput!): ScheduleAppointment
+  cancelAppointment(id: String, idType: String, cancelAppointmentInput: CancelAppointmentInput!): CancelAppointment
+  patientDetails(id: String, idType: String, patientDetailsInput: PatientDetailsInput!): PatientDetails
+  schedulingConsent(id: String, idType: String, schedulingConsentInput: SchedulingConsentInput!, profile:EnrollProfile): SchedulingConsent
+  insuranceDetails(id: String, idType: String, insuranceDetailsInput: InsuranceDetailsInput!): InsuranceDetails!
+  paymentMode(id: String, idType: String, paymentModeInput: PaymentModeInput): PaymentMode
+  schedulingQuestionnaire(id: String, idType: String, schedulingQuestionnaireInput: SchedulingQuestionnaireInput!, profile:EnrollProfile): SchedulingQuestionnaire!
+  reserveSlot(id: String, idType: String,schedulingInput: SchedulingInput) : SoftReservation
+  releaseSlot(id: String, idType: String,schedulingInput: SchedulingInput) : SoftReservation
+  generateMFAOTPSessionKey(id: String, idType: String,flow: String, userToken: String, mfaOtpSessionkeyInput: MfaOtpSessionkeyInput) : MfaOtpSessionkey!
+  deleteUserSchedule(id: String, idType: String): UserSchedule
+  validateWaitlist(id: String, idType: String, validateWaitlistInput: ValidateWaitlistInput!): ValidateWaitlist
+  confirmWaitlist(id: String, idType: String): ConfirmWaitlist
+  checkInAppointment(id: String, idType: String, lob:String, checkInAppointmentInput:[CheckInAppointmentInput]):CheckInAppointment
+  gapDisposition(gapDispositionInput:GapDispositionInput): GapDisposition
+  setPreferredPharmacy(id: String, idType: String,setPreferredPharmacyInput:SetPreferredPharmacyInput) : SetPreferredPharmacyReponse
+  insuranceImageUpload(id: String, idType: String, lob : String , insuranceImageUploadInput: InsuranceImageUploadInput!): InsuranceImageUploadResponse
+}
+
+type AppointmentsInfo {
+  statusCode: String
+  statusDescription: String
+  getAppointmentData: GetAppointmentData
+}
+type GetAppointmentData {
+  schedule: [PatientScheduleData]
+}
+type PatientScheduleData {
+  firstName: String
+  lastName: String
+  middleName: String
+  isCareGiver: String
+  appointmentsData: [AppointmentsData]
+}
+type AppointmentsData {
+  appointmentDate: String
+  lobType: String
+  status: String
+  store: Store
+}
+type Store {
+  storeId: String
+  clinicId: String
+}
+type ConfirmWaitlist {
+  statusCode: String
+  statusDescription: String
+  isWaitlistUpdated: Boolean
+  clinicId: String
+}
+
+input ValidateWaitlistInput {
+  waitListDate: String
+  lob: String
+  clinicId: String
+  reasonId: Int
+  timezone: String
+  clinicAddress: ClinicAddressInput
+}
+
+input ClinicAddressInput {
+  street: String
+  city: String
+  state: String
+  zip: String
+}
+
+type ClinicAddress {
+  addressLine1: String
+  addressLine2: String
+  street: String
+  city: String
+  state: String
+  zip: String
+}
+
+type AppointmentServices {
+  epicVisitTypeId: String
+  mcExternalVisitTypeId: String
+  mcVisitTypeId: String
+  mcVisitTypeName: String
+}
+
+type ActiveAppointment {
+  clinicId: String
+  clinicAddress: ClinicAddress
+  services: [AppointmentServices]
+  confirmationCode: String
+  appointmentDT: String
+  appointmentType: String
+  registrationType: String
+}
+
+type WaitlistInfo {
+  waitListDate: String
+  clinicId: String
+  clinicAddress: ClinicAddress
+  patientOnWaitList: Boolean
+  reasonId: Int
+  rfvName: String
+}
+
+type ValidateWaitlist {
+  statusCode: String
+  statusDescription: String
+  activeAppointments: [ActiveAppointment]
+  waitlistInfo: [WaitlistInfo]
+}
+
+input EnrollProfile {
+    id : String
+    idType: EnrollProfileIdTypeEnum
+}
+
+
+enum EnrollProfileIdTypeEnum {
+  RETAIL_PROFILE_ID_TYPE
+}
+
+input PreferredStore{
+  lastVistedStore : String
+  lastVistedClinic :String
+  favoriteStore: String
+}
+
+type Ndc {
+  id: String
+  name: String
+  subCategoryIMS: String
+  subCategoryMC:  String
+  reasonMappingId: String
+  reasonId: Int
+  manufacturer: String
+  minAge: Int
+  maxAge: Int
+}
+
+type ConsentVaccines {
+  code: String
+  ndc: [Ndc]
+}
+
+type Consents {
+  consentName: ConsentsEnum
+  consentValue: Boolean
+  consentString: String
+  value: String
+  valueType: String
+  patientReferenceIds:[String]
+}
+
+type SchedulingConsentData {
+  patientReferenceId: String
+  consentContext: String
+  summarizedConsents: Boolean
+  consents: [Consents]
+}
+
+type SchedulingConsent {
+  lob: String
+  authType: String
+  source: String
+  statusCode: String
+  statusDescription: String
+  consentData: [SchedulingConsentData]
+}
+
+input ConsentsInput {
+  consentName: ConsentsEnum!
+  consentValue: Boolean
+  consentId: String
+  consentString: String
+  value: String
+  valueType: String
+  patientReferenceIds:[String]
+}
+
+enum ConsentsEnum {
+    isCSPrivacy
+    isCSShare
+    isCSTreat
+    isCSNonCovered
+    uninsuredProgramConsent
+    isDigitalVMConsent
+    isEmployeeConsent
+    isPhiDisclosure
+    isTCPAConsent
+    isPermissionToNotify
+    isConsentToTreatCOVID19
+    isHHSUninsuredProgramConsent
+    isCCOFConsent
+    isConsentToPayCashB2BHI
+    isConsentForInsuranceB2BHI
+    isVisConsent
+    isAetnaInsurance
+    vmPermissionsToNotify
+    vmGeneralConsent
+    vmCardOnFile
+    vmHIVConsentNY
+    vmBillOfRightsAZ
+    vmPHIDisclosure
+    vmEmailMarketing
+    vmIsMedicalInsurance
+    vmIsMedicaid
+    vmCCOFQuestion
+    vmEmailAddressCreditCard
+    vmPatientRelationshipIAm
+    vmPatientRelationshipName
+    vmNoticeOfPrivacyPractice
+    vmPatientRelationshipParent
+    vmPatientRelationshipLegalGuardian
+    vmPatientRelationshipAuthRepresentative
+    vmMinorAgeRestrictionAcknowledgement
+    vmOutstandingBalCCOFQuestion
+    vmOutstandingBalCCOFConsent
+    vmTCPAConsentMarketing
+    vmMedicareQuestion
+    vmMedicareConsent
+    vmNJIISConsent
+    vmBHMHCGeneralConsent
+    vmBHHIVConsentNY
+    vmBHBillOfRightsAZ
+    vmBHPHIDisclosure
+    vmBHEmailMarketing
+    vmBHIsMedicalInsurance
+    vmBHIsMedicamasterConsentIdPlan
+    vmBHNoticeOfPrivacyPractice
+    vmBHTCPAConsent
+    vmBHMedicareQuestion
+    vmBHMedicareConsent
+    vmBHPatientRelationshipIAm
+    vmBHPatientRelationshipName
+    vmBHPatientRelationshipParent
+    vmBHPatientRelationshipLegalGuardian
+    vmBHPatientRelationshipAuthRepresentative
+    vmBHPermissionToNotify
+    vmConsentSelfPay
+    vmTexasChildImmunizationRegistry
+    vmMothersFirstName
+    vmMothersMaidenName
+    vmEmailMarketing_vmTCPAConsentMarketing
+    vmMothersFirstName_vmMothersMaidenName
+    vmTexasAdultImmunizationRegistry
+    vmPaymentSelfPay
+    vmPaymentOption
+    vmBillOfRights
+    vmBillOfRightsNH
+    vmCombinedMinorMHCConsent
+    vmCombinedAdultMHCConsent
+    vmB2BEntitlementConsent
+    isTCPAConsent_isEmailMarketing_isTCPAConsentMarketing
+    isHIVConsentNY
+    isConsentToTreat
+    isMinorAgeRestrictionAcknowledgement
+    isBillOfRightsAZ
+    isPatientRelationshipIAm
+    patientRelationshipName
+    isPatientRelationshipAuthRepresentative
+    isNoticeOfPrivacyPractice
+    isNJIISConsent
+    isTexasAdultImmunizationRegistry
+    isTexasChildImmunizationRegistry
+    mothersFirstName_mothersMaidenName
+    isTCPAConsent_isEmailMarketing_isTCPAConsentMarketing_isDigitalVMConsent
+
+}
+
+input SchedulingConsentDataInput {
+  patientReferenceId: String
+  summarizedConsents: Boolean
+  consentContext: String
+  consents: [ConsentsInput!]!
+}
+
+input SchedulingConsentInput {
+  lob: String
+  authType: String
+  source: String
+  operationType: String
+  flow: String
+  appointmentId: String
+  consentDataInput: [SchedulingConsentDataInput]
+}
+
+input ConsentVaccinesInput {
+  code: String
+  ndc: [NdcInput]
+}
+
+input ConsentDataInput {
+  patientReferenceId: String
+  dateOfBirth: String
+  vaccines: [ConsentVaccinesInput]
+  consentContext: [String]
+  encMCPatientId: String
+  relation: String
+}
+
+input ScheduleConsentInput {
+  lob: String
+  authType: String
+  source: String
+  consentsDataInput: [ConsentDataInput]
+}
+
+type ConsentData {
+  patientReferenceId: String
+  consents: [String]
+}
+
+
+input SchedulingGetConsentInput {
+  flow: String
+  appointmentId: String
+  lob: String
+  modality: String
+  brand: String
+  clinicId: String
+  state: String
+  authType: String
+  consentsDataInput: [ConsentDataInput]
+  consentContextInput: [ConsentContextInput]
+}
+
+input ConsentContextInput {
+    consentContext: String
+    summarize: Boolean
+}
+
+type GetConsent {
+  statusCode: String
+  statusDescription: String
+  consentsData: [GetConsentData]
+}
+
+type GetConsentData {
+  isSummarized: Boolean
+  patientReferenceId: String
+  consents: [ConsentDetails]
+}
+
+type ConsentDetails {
+  text: String
+  subText: String
+  consentType: String
+  consentContext: String
+  required: Boolean
+  consentId: String
+  consentName: ConsentsEnum
+  consentValue: Boolean
+  consentString: String
+  consentLink: String
+  consentLinkText: String
+  isHidden: Boolean
+  value: String
+  valueType: String
+  consentOptions: [ConsentDetails]
+  relatedConsent: [ConsentDetails]
+  consent: ConsentDetailsInfo
+  patientReferenceIds: [String]
+}
+
+type ConsentDetailsInfo {
+    type: String,
+    consents: [ConsentDetails]
+}
+type Consent {
+  statusCode: String
+  statusDescription: String
+  consentsData: [ConsentData]
+}
+
+type AdditionalReasonId {
+  reasonId: Int
+  reasonVisitMappingId: String
+}
+
+input PatientEmployerInput {
+  employerName: String
+  line1: String
+  line2: String
+  city: String
+  state: String
+  zip: String
+  phoneNumber: String
+}
+
+input AdditionalInput {
+  imzFlow: String
+  category: String
+  languageCode: String
+  oldRegistrationId: String
+  isImzGapIncluded: Boolean
+  isCallCenterRequest: Boolean
+  checkInReminder: Int
+  browserFingerPrintID: String
+  userSelectedSlot: String
+  firstSlotTime: String
+  waitListOptin: Boolean
+  removeFromPriorWaitList: Boolean
+  companyCode: String
+  inStoreIndicator: Boolean
+  lob:String
+  isTCPAConsent: Boolean
+  isDigitalVMConsent: Boolean
+  isPermissionToNotify: Boolean
+  isPhiDisclosure: Boolean
+  isConsentToTreatCOVID19: Boolean
+  isEmployeeConsent: Boolean
+  isCCOFConsent: Boolean
+  isConsentToPayCashB2BHI: Boolean
+  isConsentForInsuranceB2BHI: Boolean
+  isHHSUninsuredProgramConsent: Boolean
+  clinicType: String
+  testType: String
+  employeeId: String
+  origin: String
+  reservationCode: String
+  isnoMedicalInsurance: Boolean
+  patientEmployerInput: PatientEmployerInput
+  rfvNames: [String]
+  addlReasonIds: [String]
+  programName: String
+}
+
+
+input InsuranceInput {
+  provider: String
+  memberId: String
+  groupId: String
+  rxBin: String
+  rxPCN: String
+  isPatientPrimaryCardholder: Boolean
+  relationshipWithCardHolder: String
+  cardHolderFirstName: String
+  cardHolderLastName: String
+  insuranceType: String
+  dateOfBirth: String
+  subscriberId: String
+  planId: String
+  @deprecated
+  payorId: String
+  image: String
+  imageType: String
+  processingId: String
+  subscriberName : String
+  payerName: String
+  payerValidationStatus: String
+  subscriberIdValidationStatus: String
+  payerId: String
+  groupNumber: String
+  planType: String
+  insuranceCardTypeCode: String
+  insuranceNetwork: String
+  effectiveDate: String
+  insuranceValidationStatus: String
+  memberName: String
+  carrierName: String
+  insuranceFiles:[InsuranceImages]
+}
+
+type InsuranceInfo {
+  provider: String
+  memberId: String
+  groupId: String
+  rxBin: String
+  rxPCN: String
+  isPatientPrimaryCardholder: Boolean
+  relationshipWithCardHolder: String
+  cardHolderFirstName: String
+  cardHolderLastName: String
+  insuranceType: String
+  dateOfBirth: String
+  subscriberId: String
+  planId: String
+  @deprecated
+  payorId: String
+  image: String
+  imageType: String
+  processingId: String
+  subscriberName : String
+  payerName: String
+  payerValidationStatus: String
+  subscriberIdValidationStatus: String
+  payerId: String
+  groupNumber: String
+  planType: String
+  insuranceCardTypeCode: String
+  insuranceNetwork: String
+  effectiveDate: String
+  insuranceValidationStatus: String
+  memberName: String
+  carrierName: String
+  insuranceFiles:[InsuranceFilesData]
+}
+
+type InsuranceInputData {
+  provider: String
+  memberId: String
+  groupId: String
+  rxBin: String
+  rxPCN: String
+  isPatientPrimaryCardholder: Boolean
+  relationshipWithCardHolder: String
+  cardHolderFirstName: String
+  cardHolderLastName: String
+  insuranceType: String
+  dateOfBirth: String
+  subscriberId: String
+  planId: String
+  @deprecated
+  payorId: String
+  image: String
+  imageType: String
+  processingId: String
+  subscriberName : String
+  payerName: String
+  payerValidationStatus: String
+  subscriberIdValidationStatus: String
+  payerId: String
+  groupNumber: String
+  planType: String
+  insuranceCardTypeCode: String
+  insuranceNetwork: String
+  effectiveDate: String
+  insuranceValidationStatus: String
+  memberName: String
+  carrierName: String
+  insuranceFiles:[InsuranceFilesData]
+}
+
+type InsuranceFilesData {
+  fileName: String
+  fileType: String
+  fileScanToken: String
+  side: String
+}
+
+input MedicareDataInput {
+  memberId: String
+}
+
+type MedicareData {
+  memberId: String
+}
+
+input PaymentModeDataInput {
+    patientReferenceId:String
+    coverageOption: Int
+    insuranceStatus: String
+    typeId: Int
+    typeText: String
+    paymentInput: PaymentInput
+    noBenefitDataInput:NoBenefitDataInput
+    insuranceInput: [InsuranceInput]
+    medicareDataInput: MedicareDataInput
+    voucherDataInput: VoucherDataInput
+    benefitCardDataInput: BenefitCardDataInput
+}
+
+input PaymentCardInput {
+  cardId: String
+  transactionId: String
+}
+
+input BenefitCardDataInput {
+  benefitCardId: String
+}
+
+type PaymentData {
+  browserFingerPrintId: String
+  orderOrigin: String
+  transactionType: String
+  paymentCardInput: [PaymentCardData]
+}
+
+type PaymentCardData {
+  cardId: String
+  transactionId: String
+}
+
+type PaymentModeData {
+  patientReferenceId:String
+  typeId: String
+  typeText: String
+  paymentInput: PaymentData
+  noBenefitData:NoBenefitData
+  insuranceInput: [InsuranceInputData]
+  insuranceInfo: [InsuranceInfo]
+  medicareData: MedicareData
+  voucherData: VoucherData @deprecated(reason: "Use voucherDataInput instead")
+  voucherDataInput: VoucherData
+  #Add Benifit card type
+}
+
+input NoBenefitDataInput {
+  ssn:String
+  driverLicenseNumber: String
+  driverLicenseState: String
+}
+
+type NoBenefitData {
+  ssn:String
+  driverLicenseNumber: String
+  driverLicenseState: String
+}
+
+input VoucherDataInput{
+  planCode: String
+  planName: String
+  voucherId: String
+  groupId: String
+  voucherType: String
+}
+
+input PatientInsuranceInput {
+  patientReferenceId: String
+  memberNumber: String
+  dateOfBirth: String
+  subscriberFirstName: String
+  subscriberLastName: String
+  subscriberId: String
+  relationshipToSubscriber: String
+  groupNumber: String
+  carrierName: String
+  planId: String
+  payorId: String
+  image: String
+  imageType: String
+}
+
+input BillingAddressInput {
+  name: String
+  line1: String
+  city: String
+  country: String
+  state: String
+  zipCode: String
+}
+
+input CardInput {
+  cardType: String
+  paypageRegistrationId: String
+  expDate: String
+  bin: String
+  isToken: Boolean
+  tokenType: String
+  cardValidationNum: String
+  fsaCard: Boolean
+}
+
+input ImzTypeCodeInput {
+  code: String
+  refId: String
+}
+
+input SchedulingPatientInput {
+  patientReferenceId:  String!
+  isICATTUser: Boolean
+  specialOfferCode: Int
+  encRxConnectId:String
+  encMCPatientId:String
+  insuranceMemberId: String
+  vpcEntitled: Boolean
+  vcEntitled: Boolean
+  entitlementCheckDate: String
+  isCareGiver: Boolean
+  firstName: String
+  middleName: String
+  lastName: String
+  preferredName: String
+  address : AddressInput
+  gender: String
+  dateOfBirth: String
+  ethnicity: Int
+  email: String
+  phoneNumber: String
+  isTextAllowed: String
+  isMobileNumber: String
+  primaryPhoneNumber: String
+  race: [Int]
+  emergencyContact: EmergencyContactInput
+  welcomeKit: WelcomeKitInput
+}
+
+input WelcomeKitInput {
+  isDeviceOptIn: Boolean
+  usePrimaryAddress: Boolean
+  address: AddressInput
+}
+
+input EmergencyContactInput {
+  encMCCaregiverPatientId: String
+  optInMedicalProxy: Boolean
+  firstName: String
+  lastName: String
+  gender: String
+  email: String
+  dateOfBirth: String
+  phone: String
+  address: AddressInput
+  relationship: RelationshipInput
+}
+
+input RelationshipInput {
+  code: String
+}
+
+type EmergencyContact {
+  encMCCaregiverPatientId: String
+  optInMedicalProxy: Boolean
+  firstName: String
+  lastName: String
+  gender: String
+  email: String
+  dateOfBirth: String
+  phone: String
+  address: SchedulingAddress
+  relationship: RelationshipData
+}
+
+type WelcomeKit {
+  isDeviceOptIn: Boolean
+  usePrimaryAddress: Boolean
+  address: SchedulingAddress
+}
+
+type PatientData {
+  patientReferenceId:  String
+  isICATTUser: Boolean
+  specialOfferCode: Int
+  encRxConnectId:String
+  encMCPatientId:String
+  insuranceMemberId: String
+  vpcEntitled: Boolean
+  vcEntitled: Boolean
+  entitlementCheckDate: String
+  isCareGiver: Boolean
+  firstName: String
+  middleName: String
+  lastName: String
+  preferredName: String
+  address: SchedulingAddress
+  gender: String
+  dateOfBirth: String
+  ethnicity: Int
+  email: String
+  phoneNumber: String
+  isTextAllowed: String
+  isMobileNumber: String
+  primaryPhoneNumber: String
+  race: [Int]
+  emergencyContact: EmergencyContact
+  welcomeKit: WelcomeKit
+  favoriteStore: String
+  lastVisitedClinicId: String
+  lastVisitedStoreId: String
+  isMinor: Boolean
+}
+
+input AddressInput {
+  line: [String]
+  city: String
+  postalCode: String
+  postalCodeSuffix: String
+  county: String
+  state: String
+  country: String
+  street: String
+  intersection: String
+}
+
+input SchedulingDataInfo {
+  patientInput: SchedulingPatientInput
+  paymentModeDataInput: PaymentModeDataInput
+
+  patientInsuranceInput: PatientInsuranceInput @deprecated
+  paymentInput: PaymentInput @deprecated
+}
+
+input PaymentInput {
+  amount: Int
+  orderOrigin: String
+  paymentType: String
+  transactionType: String
+  browserFingerPrintId: String
+  cardId: String
+  billingAddressInput: BillingAddressInput
+  cardInput: CardInput
+  paymentCardInput: [PaymentCardInput]
+}
+
+input ConfirmAppointmentInput {
+  lob: String
+  authType: String
+  source: String
+  schedulingDataInfo: [SchedulingDataInfo]
+  additionalInput: AdditionalInput
+}
+
+input PatientDetailsInput {
+  lob: String
+  authType: String
+  source: String
+  operationType: String
+  schedulingDataInfo: [SchedulingDataInfo]
+}
+
+input InsuranceDetailsInput {
+  lob: String
+  authType: String
+  source: String
+  operation: String
+  schedulingRequestData: [SchedulingDataInfo]
+}
+
+input PaymentModeInput {
+  lob: String
+  authType: String
+  source: String
+  operationType: String
+  flow: FlowType
+  flowReferenceId: String
+  schedulingDataInfo: [SchedulingDataInfo]
+}
+
+type PaymentMode {
+  statusDescription: String
+  statusCode: String
+  paymentModeData: [PaymentModeData]
+  fault: FaultSection
+}
+
+type RelationshipData {
+  code: String
+}
+
+input NdcQuestionnaireInput {
+  ndcId: String
+}
+
+input RelatedQuestionAnswerOptionInput {
+  text: String
+  value: String
+}
+
+type RelatedQuestionAnswerOptionOutput {
+  text: String
+  value: String
+}
+
+input RelatedQuestionInput {
+  id: String
+  text: String
+  answerOptions: [RelatedQuestionAnswerOptionInput]
+}
+
+type RelatedQuestionOutput {
+  id: String
+  text: String
+  answerOptions: [RelatedQuestionAnswerOptionOutput]
+}
+
+input SchedulingAnswerOptionsInput {
+   text: String
+   value: String
+   answerFreeText: String
+   answerType: String
+   relatedQuestion: [RelatedQuestionInput]
+}
+
+input VaccinesNdc {
+  id: String
+}
+
+input SchedulingVaccines {
+  code: String
+  ndc: [VaccinesNdc]
+}
+
+input SchedulingQuestions {
+  id: String
+  text: String
+  answerOptions: [SchedulingAnswerOptionsInput]
+  vaccines: [SchedulingVaccines]
+}
+
+input SchedulingQuestionnaireDataInput {
+  patientReferenceId: String
+  context: SchedulingContextEnum
+  questions: [SchedulingQuestions]
+}
+
+input SchedulingQuestionnaireInput {
+  lob: String
+  flow: String
+  state: String
+  appointmentId: String
+  authType: String
+  source: String
+  sameDaySchedule: Boolean
+  operation: String
+  schedulingQuestionnaireDataInput: [SchedulingQuestionnaireDataInput]
+}
+
+type SchedulingAnswerOptionsData {
+  text: String
+  value: String
+  answerFreeText: String
+  answerType: String
+  relatedQuestion: [RelatedQuestionOutput]
+}
+
+type SchedulingVaccinesData {
+  code: String
+  ndc: [Ndc]
+}
+
+type SchedulingQuestionsData {
+  id: String
+  text: String
+  answerOptions: [SchedulingAnswerOptionsData]
+  vaccines: [SchedulingVaccinesData]
+}
+
+type SchedulingQuestionnaireData {
+  patientReferenceId: String
+  context: String
+  questions: [SchedulingQuestionsData]
+}
+
+type SchedulingQuestionnaire {
+  statusDescription: String
+  statusCode: String
+  appointmentId: String
+  fault: FaultSection
+  schedulingQuestionnaireData: [SchedulingQuestionnaireData]
+}
+
+type ResponseDetails {
+  clinicId: Int
+  confirmationCode: String
+  visitDateTime: String
+  xid: String
+  duration: Int
+  isWaitListConfirmed: Boolean
+  groupStartTime: String
+  groupAppointmentId: String
+  patientDetails: [GroupAppointmentDetails]
+}
+
+type GroupAppointmentDetails {
+    patientReferenceId: String
+    confirmationCode: String
+    visitDateTime: String
+    xid: String
+}
+
+type ScheduleAppointment {
+  statusDescription: String
+  statusCode: String
+  responseDetails: ResponseDetails
+  fault: FaultSection
+}
+
+type PatientDetails {
+  statusDescription: String
+  statusCode: String
+  patientData: [PatientData]
+  fault: FaultSection
+}
+
+type InsuranceDetails{
+  statusDescription: String
+  statusCode: String
+  insuranceData: [Insurance]
+  fault: FaultSection
+}
+
+type PaymentModeResponse {
+  statusDescription: String
+  statusCode: String
+  detail: Detail
+}
+
+input SetPreferredPharmacyInput {
+  appointmentId: String
+  pharmacyId : String
+}
+
+
+input InsuranceImageUploadInput {
+  flow: FlowType,
+  location: String,
+  flowReferenceId: String,
+  fileType: String,
+  fileName: String,
+  cardType: CardType,
+  fileScanToken: String,
+  b2BCheck: B2BCheck @deprecated(reason: "Use b2bCheck instead"),
+  b2bCheck: B2BCheck,
+  insuranceFiles : [InsuranceImages]
+  isRteRequired:Boolean
+}
+input B2BCheck {
+  isEntitlementCheckRequired: Boolean
+  dateOfBirth: String
+}
+input InsuranceImages {
+  fileType: String,
+  fileName: String,
+  fileScanToken: String
+  side : SIDE
+}
+
+enum SIDE {
+  FRONT,
+  BACK,
+  COMBINED
+}
+
+type SetPreferredPharmacyReponse {
+  statusDescription: String
+  statusCode: String
+  appointmentId : String
+}
+
+type OCRResponseData {
+  processingId : String
+  subscriberName: String
+  subscriberId: String
+  payerName: String
+  payerValidationStatus: String
+  subscriberIdValidationStatus: String
+  orbitPayerId : String
+  payerId : String
+  groupNumber : String
+  insuranceType : String
+  insuranceCardType : String
+  insuranceCardTypeCode : String
+  insuranceNetwork : String
+  planType : String
+  effectiveDate : String
+  rxBin : String
+  rxId : String
+  rxPcn : String
+  rxGrp : String
+  clientSystemPayerId : String
+  clientSystemPayerName : String
+  clientSystemPlanId : String
+  clientSystemPlanName : String
+  clientSystemMappingStatus : String
+  insuranceValidationStatus : String
+  notes : String
+  insuranceCardFiles: [InsuranceCardFileType]
+}
+type B2bInfo{
+  isB2BEntitled: Boolean
+}
+type InsuranceImageUploadResponse {
+  id: String
+  idType: String
+  flow: FlowType
+  flowReferenceId: String
+  lob: String
+  status: String
+  statusDescription: String
+  b2bInfo: B2bInfo
+  insuranceData: OCRResponseData
+}
+
+type InsuranceCardFileType {
+    fileId: String
+    fileName: String
+    cardFace: String
+}
+
+
+input GetPreferredPharmacyInput {
+  appointmentId: String
+}
+
+type PreferredPharmacy {
+  statusDescription: String
+  statusCode: String
+  appointmentId: String
+  pharmacyDetails: [PharmacyDetails]
+}
+
+type PharmacyDetails {
+  id: String
+  name : String
+  address : PreferredPharmacyAddress
+}
+
+type PreferredPharmacyAddress {
+  line: [String]
+  city: String
+  state: String
+  county: String
+  postalCode: String
+}
+
+type Detail{
+  guarantors: [Guarantor]
+}
+
+type Guarantor{
+  displayName: String
+  id: String
+  status: String
+  effectiveDate: String
+  expirationDate: String
+  planName: String
+  subscriberId: String
+  updatedTs: String
+  rteCompleted: Boolean
+  rteStatus: String
+  subscriberName: String
+  payerName: String
+  payerValidationStatus: String
+  subscriberIdValidationStatus: String
+  payerId: String
+  groupNumber: String
+  planType: String
+  insuranceCardTypeCode: String
+  insuranceNetwork: String
+  insuranceValidationStatus: String
+  processingId: String
+  insuranceType: String
+  isPatientPrimaryCardholder: Boolean
+  relationToSubscriber: String
+  subscriberDateOfBirth: String
+  carrierName: String
+  subscriberFirstName: String
+  subscriberLastName: String
+  source: String
+  rxBin: String
+  rxGroup: String
+  rxPcn: String
+  rxId: String
+}
+
+type Insurance{
+  patientReferenceId: String
+  memberNumber: String
+  dateOfBirth: String
+  subscriberFirstName: String
+  subscriberLastName: String
+  subscriberId: String
+  relationshipToSubscriber:String
+  groupNumber: String
+  carrierName: String
+  planId: String
+  payorId: String
+  image: String
+  imageType: String
+}
+
+input OldReservationInput {
+  oldconfirmationNumberapptID: String
+  reason: String
+  clinicId: String
+  oldApptDate: String
+  oldApptScheduleType: String
+}
+
+input RescheduleDataInput {
+  additionalInput: AdditionalInput
+  softReservationInput: SoftReservationInput
+  patientInput:[SchedulingPatientInput]
+}
+
+input ReScheduleAppointmentInput {
+  lob: String
+  source: String
+  flow: String
+  schedulingDataInfo: SoftReservationInput
+  patientInput:[SchedulingPatientInput]
+  additionalInput: AdditionalInput
+}
+
+type ReScheduleAppointment {
+  statusDescription: String
+  statusCode: String
+  responseDetails: ResponseDetails
+  fault: FaultSection
+}
+
+input CancelAppointmentInput {
+  lob: String
+  confirmationNumber: String
+  lastName: String
+  cancelReason: String
+  cancelReasonCode: String
+  operation: String
+  languageCode: String
+  origin: String
+  vaccineId: [String]
+  feedback: String
+}
+
+type CancelAppointment {
+  statusDescription: String
+  statusCode: String
+  lob: String
+  confirmationNumber: String
+  lastName: String
+  cancelReason: String
+  cancelReasonCode: String
+  operation: String
+  languageCode: String
+  origin: String
+  vaccineId: [String]
+  fault: FaultSection
+}
+
+input VaccineEligibilityInput{
+  lob: String
+  flow: String
+  eaCampaignId: String
+  state: String
+  clinicId: String
+  vaccineDataInput:[VaccineDataInput]
+  vcEntitled : Boolean
+  vpcEntitled : Boolean
+  user: VaccineEligibilityUser
+}
+
+input EligibilityQuestionnairesInput {
+  questionId: String
+  answerOptions: [EligibilityAnswerOptions]
+  answerValue: String
+  category: String
+  answerText: String
+}
+
+input EligibilityAnswerOptions{
+  value: String
+}
+
+input VaccineEligibilityUser{
+  state:String
+  city:String
+  zipCode:String
+  timeZone:String
+}
+
+type FaultSection {
+  type: String
+  title: String
+  moreInfo: String
+  errors: [ErrorsDetails!]
+}
+
+type ErrorsDetails {
+  type: String
+  title: String
+  field: String
+}
+
+input AppointmentsFilterCriteriaInput {
+  lob: [String]!
+  showOnlyVaccines: Boolean
+  isProviderCancelled: Boolean
+  flow: String
+}
+
+input UpcomingAppointmentsxidInput {
+  lob: String!
+  registrationId: String
+  xid: String
+  confirmationCode: String
+  appointmentId: String
+  dateOfBirth: String
+  lastName: String
+  flow: String
+  isProviderCancelled: Boolean
+}
+
+type UpcomingAppointments {
+  statusCode: String
+  statusDescription: String
+  caregiverAppointments: AppointmentDetails
+  caregiveeAppointments: [AppointmentDetails]
+
+}
+
+type AppointmentDetails {
+  patient: PatientData
+  appointments: [SchedulingAppointment]
+  formsStatus: FormStatus
+}
+
+type FormStatus {
+  consents: String
+  demographicInfo: String
+  insurance: String
+  payment: String
+  isInsuranceDetailsCompleted: String
+  hpi: String
+  tb: String
+  vaccine: String
+  sp: String
+  checkIn: String
+  eap: String
+  prefPharmacy: String
+  symptom: String
+}
+
+type SchedulingAppointment {
+  groupAppointmentId: Int
+  groupAppointmentStartDateTime: String
+  isGroupAppointment: Boolean
+  appointmentId: String
+  checkInId: String
+  appointmentCode: String
+  appointmentDate: String
+  isAppointmentInPast: Boolean
+  status: String
+  lobType: String
+  groupCheckInId: String
+  checkInStatus: CheckInStatusEnum
+  groupCheckInStatus: CheckInStatusEnum
+  scheduledType: String
+  appointmentType: String
+  scheduledRefId: String
+  actionNote: String
+  timeZone: String
+  appointmentTimeInUTC: String
+  checkInTimeInUTC: String
+  store: SchedulingStore
+  details: Details
+  xid: String
+  brand: String
+  modality: String
+  userLocation: String
+  user: UserData
+  userTimeZone: String
+  stateName: String
+  zipCode: String
+  isVirtualVisit: Boolean
+  isVcsClinic: Boolean
+  providerInfo: ProviderInfo
+  flowId: String
+  flow: String
+  isRescheduleAllowed: Boolean
+  isCancelAllowed: Boolean
+  digitalApptSrc: String
+  isB2BEntitled: String
+  joinVisitAddress: SchedulingAddress
+  virtualVisitLink: String
+  visitCount: Int
+  checkedInType: String
+}
+
+type SchedulingStore {
+   id: String
+   idType: StoreInfoTypeEnum
+   searchType: SearchTypeEnum
+   address: SchedulingAddress
+   clinicId: String
+   timeZone: String
+   bannerBrands: [BannerBrands]
+   state: String
+   geographicLat: String
+   geographicLong: String
+   clinicName: String
+   isPCPClinic: Boolean
+}
+
+type ProviderInfo {
+    providerId: String
+    firstName: String
+    lastName: String
+    formalNameWithDegree: String
+    photo: String
+    isMedicareAccepted: Boolean
+    demographics: ProviderDemographics
+    credentials: [ProviderCredentials]
+
+}
+
+type ProviderDemographics {
+    degrees: String
+    bio: String
+    yearsExperience: String
+    gender: String
+    languages: [String]
+    specialties: [String]
+
+}
+
+enum CardType {
+  VA,
+  MEDICAL
+}
+
+enum FlowType {
+    VM_EVC_FLOW,
+    VM_INSURANCE_FLOW,
+    SCHEDULING_FLOW,
+    ACCOUNT_FLOW,
+    TEST_TREAT,
+    TEST,
+    VACCINE,
+    MC_CORE,
+    MC,
+    MHC
+}
+
+enum SchedulingContextEnum{
+  TREAT_ADDITIONALINFO
+  TREAT_WEIGHT
+  TEST_AND_TREAT_ROUTING_PAGE
+  TREAT_MEDICATIONS_CONTINUED
+  TEST_AND_TREAT_ELIGIBILITY
+  TEST_AND_TREAT_SYMPTOMS
+  TEST_AND_TREAT_SYMPTOMS_HISTORY
+  TEST_AND_TREAT_MEDICAL_HISTORY
+  TEST_AND_TREAT_MEDICAL_HISTORY_CONTINUED
+  TEST_AND_TREAT_MEDICATIONS
+  TEST_AND_TREAT_MEDICATIONS_CONTINUED
+  TEST_AND_TREAT_ADDITIONALINFO
+  TEST_AND_TREAT_NEXTSTEPS
+  TEST_AND_TREAT_NEXTSTEPSCONTINUE
+  TEST_AND_TREAT_OPTIONS
+  TEST_AND_TREAT_CAREOPTIONS
+  TEST_AND_TREAT_PERSONALINFO
+  TEST_ONLY_PERSONALINFO
+  TEST_AND_TREAT_PRIMARYCAREINFO
+  TEST_AND_TREAT_PERSONALINFO_MC
+  IMZ_ELIGIBILITY_QUESTION
+  IMZ_SCREENING_QUESTION
+  IMZ_LEGAL_QUESTION
+  MC_CORE_ELIGIBILITY_QUESTION
+  MHC_SCHEDULING_QUESTION
+  MC_LEGAL_QUESTION
+  MHC_LEGAL_QUESTION
+  IMZ_CANCEL_REASON
+  IMZ_OPTIONAL_QUESTION
+  HPI
+  VACCINE
+  HPIVIRTUAL
+  DEPRESSIONSCREENING
+  DEPRESSIONSCREENINGPCP
+  SOCIALNEEDS
+  ADF
+  TB
+  SP
+  DEMOGRAPHICS
+  TEST_AND_TREAT_BLOODWORK
+  MC_VACCINE_PATIENT_PROFILE_INFO
+  MC_VACCINE_SCREENING_QUESTION
+  MC_INSURANCE_COVERAGE
+}
+
+enum SearchTypeEnum {
+  STORE_ID_TYPE
+  ZIP_CODE_TYPE
+}
+
+enum StoreInfoTypeEnum {
+  RETAIL_STORE_TYPE
+  SPL_STORE_TYPE
+  PBM_STORE_TYPE
+}
+
+enum QuestionnaireTypeEnum {
+    SCREENING
+    LEGAL
+    OPTIONAL
+    ELIGIBILITY
+}
+
+type Details {
+  vaccinesIMZ: [Vaccines]
+  servicesMC: [ServicesMC]
+}
+
+type ServicesMC {
+  reasonId: Int
+  serviceName: String
+  rfvMappingId: String
+  code: String
+  serviceIndicator: [String]
+  ndc: [Ndc]
+  isPrimary: Boolean
+}
+
+type SearchLocations {
+  statusCode: String
+  statusDescription: String
+  additionalStatus:String
+  defaultStartDate:String
+  userTimeZone: String
+  listOfClinics: [Clinic]
+  providers:[Providers]
+  availableDates: [String]
+  schedulingStartDate: String
+  schedulingEndDate: String
+  availableVaccines: [String]
+  schedulingDates :[SchedulingDate]
+  unavailableVaccines: [String]
+  restrictedVaccines: [String]
+}
+
+type SchedulingDate {
+  lobType: String
+  minSchedulingDate: String
+  maxSchedulingDate: String
+}
+
+type Clinic {
+  lobType: String
+  clinicId: String
+  clinicType: String
+  storeId: String
+  storeType: String
+  clinicName: String
+  distance: String
+  geographicLat: String
+  geographicLong: String
+  phoneNumber: String
+  timeZone: String
+  isLastVisited: Boolean
+  isFavourite: Boolean
+  isPCPClinic: Boolean
+  isInventory : Boolean
+  isRestricted : Boolean
+  modalities: [String]
+  availableSlots: [AvailableSlots]
+  availableDates: [String]
+  additionalData: [SchedulingAdditionalData]
+  services: [Services]
+  hoursOfOperation: [HoursOfOperation]
+  address: SchedulingAddress
+  bannerBrands: [BannerBrands]
+  providerFirstName: String
+  providerLastName: String
+}
+
+type Providers {
+  lobType: String
+  clinicId: String
+  clinicType: String
+  isMyPCP: Boolean
+  address: SchedulingAddress
+  modalities:[String]
+  geographicLat: String
+  geographicLong: String
+  timeZone: String
+  services: [Services]
+  availableSlots: [AvailableSlots]
+  availableDates: [String]
+  additionalData: [SchedulingAdditionalData]
+  isLastSeenProvider: Boolean
+  providerInfo: ProviderInfo
+}
+
+type ProviderCredentials {
+  state: String
+}
+
+type BannerBrands {
+  description: String
+  indicator: String
+}
+
+type AvailableSlots {
+  visitDate: String
+  modalities: [String]
+  duration: Int
+  slotAllocation: Int
+  earliest: [String]
+  earlymorning: [String]
+  morning: [String]
+  afternoon: [String]
+  evening: [String]
+  overnight: [String]
+}
+
+type SchedulingAddress {
+  line: [String]
+  city: String
+  postalCode: String
+  postalCodeSuffix: String
+  county: String
+  state: String
+  country: String
+  street: String
+  intersection: String
+  zip: String
+  stateName: String
+}
+
+type HoursOfOperation {
+  weekDay: String
+  startTime: String
+  endTime: String
+  breakStart: String
+  breakEnd: String
+}
+
+type Services {
+  reasonId: Int
+  name: String
+  duration:Int
+  maxDaysAheadOfSchedule:Int
+  reasonMappingId: String
+  virtualReasonId: Int
+  modalities : [String]
+  lob: String
+  cost: Float
+  specialOfferCode: Int
+  isPrimary: Boolean
+  brand: String
+  serviceIndicator: [String]
+}
+
+type SchedulingAdditionalData {
+  availableVaccineTypes: [String]
+  mfrNames: [String]
+  patients:[Patients]
+  inventorySubCatList:[InventorySubCatList]
+}
+
+type Vaccines {
+  id:String
+  code: String
+  type: String
+  userType: String
+  name:  String
+  ageRestriction: AgeRestriction
+  originator: String
+  reason: String
+  reasonCode: String
+  updatedDate: String
+  ndc: [Ndc]
+  doseType: String
+  dosageInfo: [DosageInfo]
+  doseNumber: String
+  lastDoseDate: String
+  opportunityId: String
+  series: String
+  isGroupEligible: String
+  isRecommended: String
+  lobApplicable: [String]
+  isInvConstraint: Boolean
+  gapOpportunityId: String
+  status: String
+  prescription: SchedulingPrescription
+  oldAppointmentData: OldAppointmentData
+  isGapVaccine: Boolean
+  rxNumber: String
+  rxFillNumber: String
+  partialFillSeqNumber: String
+  fillEditVersionNumber: String
+}
+
+type OldAppointmentData {
+  appointmentDate: String
+  appointmentTimeInUTC: String
+  timeZone: String
+}
+
+type SchedulingPrescription {
+  copayAmount: String
+  rxFillNumber: String
+  rxNumber: String
+}
+
+type Patients {
+    patientReferenceId: String
+    isDurationBasedScheduling: Boolean
+    appointmentDuration: Int
+    dateOfBirth: String
+    restrictions:[Restriction]
+    vaccines:[Vaccines]
+    unAvailableVaccines: [UnAvailVaccines]
+    isPatientRecommended: Boolean
+    isPatientEligible: Boolean
+    minScheduleDate: String
+    maxScheduleDate: String
+    immunizationsPharmacy: Immunizations
+    immunizationsMC: Immunizations
+}
+
+type UnAvailVaccines {
+  code: String
+}
+
+type Restriction{
+ type: String
+ code:[String]
+}
+
+type VaccineData {
+  patientReferenceId: String
+  isPatientRecommended: Boolean
+  isPatientEligible: Boolean
+  isAdult: Boolean
+  minScheduleDateIMZ: String
+  maxScheduleDateIMZ: String
+  ineligibilityReasonDesc: String
+  ineligibilityReasonCode: String
+  immunizationsPharmacy: Immunizations
+  immunizationsMC: Immunizations
+  services: [Services]
+  isICATTUser: Boolean
+  isInsuranceRequired: Boolean
+  isPaymentRequired: Boolean
+  isTestAndTreat: Boolean
+  nextContext: String
+}
+
+type EligibleVaccines {
+  code: String
+  ageCheck : Boolean
+  ndc: [Ndc]
+  manufacturers: [String]
+  manufacturer: [String]
+}
+
+type Immunizations {
+  vaccines: [EligibleVaccines],
+  ineligibleVaccines: [EligibleVaccines]
+}
+
+type InventorySubCatList {
+  inventorySubCatId: String
+  ndcList:[NdcList]
+}
+
+type NdcList {
+  ndc: String
+  ndcName: String
+  boh: Int
+  manufacturer: String
+  dosageType: String
+  ageRange: String
+}
+
+type SearchProviders {
+  statusCode: String
+  statusDescription: String
+  providersList: [ProvidersList]
+  availableDates: [String]
+}
+
+type ProvidersList {
+  providerId: String
+  lastName: String
+  firstName: String
+  degrees: String
+  gender: String
+  formalNameWithDegree: String
+  medicareAccepted: String
+  languages: String
+  photo: String
+  specialities: String
+  listOfClinics: [Clinic]
+}
+
+input SortCriteriaInput {
+  sortBy: String
+}
+
+input FilterCriteriaInput {
+  isIncludeDates: Boolean
+  isIncludeClinicConfig: Boolean
+  searchRadius: Int
+  limitResults: Int
+  isShowAllClinics: Boolean
+}
+
+input FilterInput {
+  searchRadius: Int!
+  clinicLOB: [ClinicLOB]!
+}
+
+input ClinicLOB {
+  lobType: String!
+  reasonId: [String]!
+  reasonMappingId: [String]
+}
+
+input LobParameters {
+  minSchedulingDate: String
+  maxSchedulingDate: String
+  patients: [PatientsInput]
+  reasonId: [Int]
+  services: [PrimaryServicesInput]
+}
+
+input LobInput {
+  lobType: String
+  lobParameters: LobParameters
+  clinicInfo: ClinicInfo
+}
+
+type NdcData {
+  ndc: [String]
+  subCategoryIMS: String
+  subCategoryMC: String
+  reasonMappingId: String
+  reasonId: Int
+}
+
+input NdcInput {
+  id: String
+  subCategoryIMS: String
+  subCategoryMC: String
+  reasonMappingId: String
+  reasonId: Int
+  doseNumber: Int
+  doseType: String
+  lastDoseDate: String
+  name: String
+  manufacturer: String
+}
+
+input VaccinesInput {
+  code: String
+  type: String
+  name: String
+  doseNumber: String
+  doseType: String
+  lastDoseDate: String
+  isInvConstraint: Boolean
+  ndc: [NdcInput]
+  vaccineId: [String]
+  manufacturers: [String]
+  gapOpportunityId: String
+}
+
+input PatientsInput {
+  patientReferenceId: String
+  dateOfBirth: String
+  encMCPatientId: String
+  eligibilityQuestionnaires: [EligibilityQuestionnairesInput]
+  vaccines:[VaccinesInput]
+  myPCPId: String
+}
+
+input VaccineDataInput {
+  patientReferenceId: String
+  dateOfBirth: String
+  eligibilityQuestionaires: [EligibilityQuestionnairesInput]
+  vaccines:[VaccinesInput]
+  services: [PrimaryServicesInput]
+  context: String
+  previousContext: [previousEligibilityContext]
+}
+input previousEligibilityContext{
+    context: String
+    eligibilityQuestionaires: [EligibilityQuestionnairesInput]
+}
+
+input PrimaryServicesInput {
+  reasonId: Int
+  name: String
+  reasonMappingId: String
+  specialOfferCode: Int
+  isPrimary: Boolean
+}
+
+input SearchCriteriaInput {
+  clinicIds: [String]
+  address: String
+  state: String
+  latitude: String
+  longitude: String
+  visitDate:String
+  brand: String
+  modalities: [String]
+  lob: [LobInput]
+  storeIdList: [String]
+  providerIdList: [String]
+  groupSize: String
+  flow: String
+  entryFlow :String
+}
+
+input ClinicInfo {
+  age: String
+  clinicIds: [String]
+  reasonIds: [Int]
+  additionalReasonIds: [Int]
+  groupSize: String
+  timeZone: String
+  distanceMappings: [DistanceMapping]
+  providerId: [String]
+}
+
+input DistanceMapping {
+  clinicId: String
+  distance: Float
+}
+
+input Modalities{
+  modality: String
+  state: String
+  userTimeZone: String
+  providerIds: [String]
+  reasonIds: [Int]
+  clinicIds: [String]
+}
+
+input ProviderInfoInput{
+  modalities: [Modalities]
+}
+
+input AvailableTSLobInput {
+  lobType: String
+  reasonIds: [Int]
+  additionalReasonIds: [Int]
+  maxSchedulingDate: String
+  minSchedulingDate: String
+  clinicInfo: ClinicInfo
+  providerInfo: ProviderInfoInput
+  patients: [PatientsInput]
+}
+
+input AvailableTimeSlotsInput {
+  startDate: String
+  endDate: String
+  flow: String
+  sortBy: String
+  lob: [AvailableTSLobInput]
+}
+
+type SlotDetails {
+  visitDate: String
+  modalities: [String]
+  evening: [String]
+  afternoon: [String]
+  earlymorning: [String]
+  morning: [String]
+  earliest: [String]
+  overnight: [String]
+}
+
+type AvailableTimeslots {
+    clinicId: String
+    providerId: String
+    virtualReasonId: Int
+    modalities: [String]
+    timeZone: String
+    slotAllocation: Int
+    duration: Int
+    patients: [Patients]
+    slotDetails: [SlotDetails]
+}
+
+type AvailableTimeSlots {
+  statusCode: String
+  statusDescription: String
+  availableTimeslotsResponse: [AvailableTimeslots]
+  providerTimeslotsResponse: [AvailableTimeslots]
+}
+
+type VaccineEligibility {
+  statusCode: String
+  statusDescription: String
+  flow: String
+  minScheduleDateIMZ: String
+  maxScheduleDateIMZ: String
+  clinicId: String
+  vaccineData: [VaccineData]
+}
+
+
+input MfaOtpSessionkeyInput {
+  firstName: String
+  lastName: String
+  dateOfBirth: String
+  phoneNumber: String
+}
+
+type MfaOtpSessionkey {
+  statusDescription: String
+  statusCode: String
+  responseDetails: MfaResponseDetails
+  fault: FaultSection
+}
+
+type CommunicationDetails {
+  key: String
+  value: String
+}
+
+type MfaResponseDetails {
+  mfaOTPSessionKey: String
+  mfaToken: String
+  dobEnabled: String
+  mnoEnabled: String
+  rbaRiskScore: String
+  mfaBypassToken: String
+  mfaBind: String
+  maxAge: Int
+  communicationDetails: [CommunicationDetails]
+}
+
+type AgeRestriction {
+  minAge: Float!
+  maxAge: Float!
+}
+
+type DosageInfo {
+  maxDoses: Int!
+}
+
+type EligibleVaccine {
+  code: String!
+  name: String!
+  type: String!
+  ageRestriction: AgeRestriction!
+  riskFactor: Boolean
+  dosageInfo: DosageInfo
+  series: SeriesType
+  isGroupEligible: Boolean
+  isRecommended: Boolean
+  lob: [LobEnum]!
+  category: [String]
+}
+
+type GapVaccine {
+  code: String!
+  name: String
+  type: String!
+  rank: String!
+  doseNumber: Int!
+  opportunityId: String!
+}
+
+type UpsellVaccine {
+  code: String!
+  type: String!
+  name: String!
+}
+
+type PatientVaccineInfo {
+  firstName: String
+  lastName: String
+  preferredName: String
+  dob: String
+  emailAddress: String
+  phoneNumber: String
+  address: SchedulingAddress
+  isCaregiver: Boolean!
+  insuranceMemberId: String
+  eligibleVaccines: [EligibleVaccine!]
+  gapVaccines: [GapVaccine!]
+  upsellVaccines: [UpsellVaccine!]
+  careGaps: PatientCareGaps
+  selectedVaccines: [SelectedImmunization]
+  favoriteStore: String
+  lastVisitedClinicId: String
+  lastVisitedStoreId: String
+  encRxConnectId: String
+  encMCPatientId: String
+  gender: String
+  myPCPId: String
+  isNOKAvailable: Boolean
+  isREAvailable: Boolean
+  clinicId: String
+  userAppointmentData: UserAppointmentData
+  immunizationRxData: ImmunizationRxData
+}
+
+type PatientCareGaps{
+vaccines: [CareGapVaccines!]
+services: [CareGapServices!]
+}
+
+type CareGapVaccines{
+code : String
+name: String
+type: String
+priority: Int
+}
+
+type CareGapServices{
+    reasonId: Int
+    name: String
+    reasonMappingId: String
+    priority: Int
+}
+type UserAppointmentData {
+  encryptedAppointmentId: String
+  encryptedRegistrationId: String
+  status: String
+  checkInStatus: String
+  activeVaccineCount: Int
+  appointmentVaccines: [Vaccines]
+}
+
+type PatientsEligibleVaccines {
+  statusCode: String
+  statusDescription: String
+  flow: String
+  programName: String
+  clinicId: String
+  patients: [PatientVaccineInfo!]!
+}
+
+type SchedulingAnswerOptions {
+  text: String
+  value: String
+  additionalDetail: Boolean
+  additionalDetailType: String
+  additionalDetailText: String
+  relatedQuestion: [Questions]
+  relatedQuestions: [Questions]
+}
+
+type QuestionnaireVaccines {
+  code: String
+  ndc: [Ndc]
+}
+
+type QuestionnaireServices {
+  name: String
+  reasonId: Int
+  reasonMappingId: String
+}
+
+type Questions {
+  id: String
+  questionId: String
+  text: String
+  category: String
+  errorMessage: String
+  answerType: String
+  required: Boolean
+  isStacked: Boolean
+  helpText: String
+  linkText: String
+  characterLimit: String
+  riskFactorFlag: [String]
+  answerOptions: [SchedulingAnswerOptions]
+  services: [QuestionnaireServices]
+  vaccines: [QuestionnaireVaccines]
+  subContext: String
+  questionNumber: Int
+  skipLegend: String
+}
+
+type QuestionDetail {
+  title: String
+  instructions: String
+  helper: String
+  subContext: String
+  pageNumber: Int
+  footer: String
+}
+
+type QuestionnaireData {
+  patientReferenceId: String
+  context: String
+  appointmentId: String
+  questions: [Questions]
+  details: [QuestionDetail]
+}
+
+type Questionnaire {
+  statusCode: String
+  statusDescription: String
+  questionnaireData: [QuestionnaireData]
+  flow: String
+}
+
+input QuestionnaireVaccinesInput {
+  code: String
+  ndc: [VaccinesNdc]
+}
+input QuestionnaireServicesDataInput {
+  name: String
+  reasonId: Int
+  reasonMappingId: String
+}
+
+input QuestionnaireDataInput {
+  patientReferenceId: String
+  dateOfBirth: String
+  isREAvailable:Boolean
+  isNOKAvailable:Boolean
+  requiredQuestionnaireContext: [SchedulingContextEnum]
+  category: [String]
+  vaccines: [QuestionnaireVaccinesInput]
+  services: [QuestionnaireServicesDataInput]
+}
+
+input ScheduleQuestionnaireInput {
+  lob: String
+  authType: String
+  flow: String
+  modality: String
+  storeId: String
+  clinicId: String
+  source: String
+  state: String
+  sameDaySchedule: Boolean
+  appointmentId: String
+  questionnaireDataInput: [QuestionnaireDataInput]
+}
+
+input EligibleVaccinesInput {
+  state: String
+  clinicId: String
+  services: [EligibleVaccinesServicesInput]
+}
+
+input EligibleVaccinesServicesInput {
+    reasonId: Int
+    name: String
+    reasonMappingId: String
+    isPrimary: Boolean
+}
+type OldReservationData {
+  oldconfirmationNumberapptID: String
+  reason: String
+  clinicId: String
+  oldApptDate: String
+  oldApptScheduleType: String
+}
+
+type ReasonForVisitData{
+  reasonId: Int
+  reasonMappingId: String
+  virtualReasonId: Int
+}
+
+type UserData{
+  zipCode: String
+  state: String
+  city: String
+  timeZone: String
+}
+
+type SoftReservationData {
+  patientReferenceId: String
+  dateOfBirth: String
+  encryptedAppointmentId: String
+  encryptedRegistrationId: String
+  flow: String
+  modality: String
+  brand: String
+  clinicId: String
+  storeId: String
+  clinicType: String
+  timeZone: String
+  line1: String
+  line2: String
+  city: String
+  state: String
+  zipCode: String
+  appointmentDate: String
+  appointmentTime: String
+  appointmentDuration: Int
+  isDurationBasedScheduling: Boolean
+  totalDuration: Int
+  appointmentId:String
+  userTimeZone: String
+  userLocation:String
+  user: UserData
+  providerId: String
+  reminderInterval:String
+  gracePeriod:String
+  reservationCode: String
+  expiryTime: String
+  reasonForVisit: [ReasonForVisitData]
+  vaccines: [Vaccines]
+  oldReservation:OldReservationData
+}
+
+type SchedulingSoftReservation {
+  lob: String
+  authType: String
+  source: String
+  isStateMgmtFlag: Boolean
+  isPatientInStore: Boolean
+  statusCode: String
+  statusDescription: String
+  groupSize: Int
+  operationType: String
+  softReservationData: [SoftReservationData]
+}
+
+type SoftReservation{
+  schedulingSoftReservation: SchedulingSoftReservation
+}
+
+input ReasonForVisit{
+  reasonId: Int
+  reasonMappingId: String
+  virtualReasonId: Int
+}
+
+input User{
+  zipCode: String
+  state: String
+  city: String
+  timeZone: String
+}
+
+input SoftReservationInput{
+  patientReferenceId: String
+  dateOfBirth: String
+  flow: String
+  brand: String
+  modality: String
+  clinicId: String
+  storeId: String
+  clinicType: String
+  timeZone: String
+  line1: String
+  line2: String
+  city: String
+  state: String
+  zipCode: String
+  appointmentDate: String
+  appointmentTime: String
+  appointmentDuration: Int
+  isDurationBasedScheduling: Boolean
+  totalDuration: Int
+  appointmentId:String
+  userTimeZone: String
+  userLocation: String
+  user: User
+  providerId: String
+  reminderInterval:String
+  gracePeriod:String
+  reservationCode: String
+  expiryTime: String
+  reasonForVisit: [ReasonForVisit]
+  vaccines: [VaccinesInput]
+  oldReservation:OldReservationInput
+}
+
+input SchedulingInput {
+  lob: String
+  authType: String
+  source: String
+  isStateMgmtFlag: Boolean
+  isPatientInStore: Boolean
+  groupSize: Int
+  operationType: String
+  softReservationInput: [SoftReservationInput]
+  userAppointmentInput: UserAppointmentInput
+}
+
+input UserAppointmentInput {
+  xid: String!
+  programName: String!
+  vaccines: [VaccinesInput]
+}
+
+type UserSchedule {
+  duplicateAppointments: [DuplicateAppointment]
+  schedule: [NgsSchedule]
+  isCacheFlushed: Boolean
+}
+
+type DuplicateAppointment {
+  patientReferenceId: String
+  isGroupAppointment: Boolean
+  groupAppointmentId: Int
+  groupAppointmentStartDateTime: String
+  appointmentId: Int!
+  appointmentStatus: String
+  appointmentTime: String
+  appointmentType: String
+  apptCreatedTime: String
+  clinicId: Int!
+  confirmationCode: String
+  providerId: String
+  registrationType: String
+  services: [DuplicateAppointmentService]
+  storeId: String
+  timezone: String
+  userTimeZone: String
+  brand: String
+  lob: String
+  isVirtualVisit: Boolean
+  address: DuplicateAppointmentAddress
+  providerInfo: ProviderInfo
+}
+
+type DuplicateAppointmentService {
+  epicVisitTypeId: String!
+  mCExternalVisitTypeId: String
+  vMCExternalVisitTypeId: String
+  mCVisitTypeId: String
+  mCVisitTypeName: String
+}
+
+type DuplicateAppointmentAddress {
+  street: String!
+  city: String!
+  state: String!
+  zip: String!
+}
+
+type NgsSchedule {
+  patientReferenceId: String
+  patientData: PatientData
+  schedulingData: SoftReservationData
+  paymentModeData: PaymentModeData
+  insuranceData: Insurance
+  questionnaireData: SchedulingQuestionnaireData
+  consentData: SchedulingConsentData
+  additionalSchedulingData: AdditionalSchedulingData
+}
+
+type AdditionalSchedulingData {
+  imzFlow: String
+  oldRegistrationId: String
+  isImzGapIncluded: Boolean
+  isCallCenterRequest: Boolean
+  checkInReminder: Int
+  browserFingerPrintID: String
+  userSelectedSlot: String
+  firstSlotTime: String
+  waitListOptin: Boolean
+  removeFromPriorWaitList: Boolean
+  clinicType: String
+  testType: String
+  employeeId: String
+  origin: String
+  reservationCode: String
+  isnoMedicalInsurance: Boolean
+  isHHSUninsuredProgramConsent: Boolean
+  patientEmployer: PatientEmployer
+  rfvNames: [String]
+  addlReasonIds: [String]
+}
+
+type PatientEmployer {
+  employerName: String
+  line1: String
+  line2: String
+  city: String
+  state: String
+  zip: String
+  phoneNumber: String
+}
+
+enum SeriesType {
+  SINGLE
+  MULTI
+  BOOSTER
+}
+
+enum LobEnum {
+  CLINIC
+  RxIMZ
+  MHC
+  RxERP
+}
+
+scalar JSON
+scalar _FieldSet
+
+enum ScheduleStatus {
+  Cancelled
+  ERClosure
+  CheckedIn
+  AutoCancel
+}
+
+input GetAvailableDatesByClinicsRequest {
+  startDate: String!
+  endDate: String!
+  flow: String
+  reasonId: [Int]
+  mcClinicIdList: [String]
+  modality: String
+  modalities: [String]
+  state: String
+  imzClinicIdList: [String]
+  maxSchedulingDate: String
+  minSchedulingDate: String
+  lob: [AvailableDateLobInput]
+}
+
+input AvailableDateLobInput {
+  lobType: String!
+  state: String
+  minSchedulingDate: String
+  maxSchedulingDate: String
+  modalities: [Modality!]!
+  reasonIds: [Int!]
+  additionalReasonIds: [Int!]
+  patients: [PatientsInput]
+}
+
+input Modality {
+  modality: String
+  clinicIds: [String!]
+  providerIds: [String!]
+}
+
+type GetAvailableDatesByClinicsResponse {
+  statusCode: String,
+  statusDescription: String,
+  globalAvailableDates: [String]
+  imzAvailableDates: [AvailableDates]
+  mcAvailableDates: [AvailableDates]
+  providerAvailableDates: [AvailableDates]
+  availableDates: [AvailableDates]
+}
+
+type AvailableDates {
+  lobType: String
+  clinicId: String
+  dates: [String]
+  providerId: String
+  timeZone: String
+  modalities: [String]
+}
+
+type VoucherData{
+  planCode: String
+  voucherId: String
+  groupId: String
+}
+
+enum RelationshipEnum {
+  OTH
+  SELF
+  PARENT
+  LEGAL
+}
+
+
+
+
+input SlotCountByDatesInput {
+  startDate: String
+  endDate: String
+  clinicIdList: [String]
+}
+
+type SlotCountByDatesResponse {
+  clinicId: String
+  visitDates: JSON
+}
+
+type GetSlotCountByDatesResponse {
+  statusCode: String
+  statusDescription: String
+  slotCountDetails: [SlotCountByDatesResponse]
+}
+
+input VerifyXidInput {
+  lob: String
+  xid: String
+  dob: String
+}
+
+type XidData{
+  programName: String
+  accessToken: String
+  expiresAt: String
+  tokenType: String
+}
+type ImmunizationRxData {
+  rxNumber: String
+  rxFillNumber: String
+  partialFillSeqNumber: String
+  fillEditVersionNumber: String
+}
+type SelectedImmunization {
+  code: String
+  name: String
+  ndc: String
+}
+
+type VerifyXid {
+  statusCode: String
+  statusDescription: String
+  lob: String
+  xid: String
+  confirmationNumber: String
+  firstName: String
+  preferredName: String
+  xidData: XidData
+  fault: FaultSection
+  appointment: SchedulingAppointment
+  skipAuthentication: Boolean
+  loggedInUser: String
+}
+
+type StoreOutput {
+  statusCode: String
+  statusDescription: String
+  hasClinics: Boolean!
+  isVirtualOffered: Boolean
+  isOakStreetOffered: Boolean
+}
+
+input AllVisitCodesInput {
+  categoryId: [Int]
+  flowId: [String]!
+  lob: [String]!
+  reasonId: [Int]
+  reasonMappingId: [String]
+  isDefaultSuggestion: Boolean
+  isEVC: Boolean
+}
+
+type AllVisitCodes {
+  statusCode: String
+  statusDescription: String
+  reasonVisitDetails: [ReasonVisitDetail]
+  fault: FaultSection
+}
+
+type ReasonVisitDetail {
+  lob: String
+  categoryData: [CategoryData]
+}
+
+type CategoryData {
+  categoryId: Int
+  categoryName: String
+  categoryDesc: String
+  flowId: String
+  reasonVisitData: [ReasonVisitData]
+}
+
+type ReasonVisitData {
+  reasonVisitMappingId: String
+  reasonVisitCd: Int
+  reasonVisitName: String
+  reasonVisitDesc: String
+  reasonVisitPrice: String
+  enableVirtualCareLink: Boolean
+  minAge: Float
+  maxAge: Float
+  keywords: [String]
+  isDefaultSuggestion: Boolean
+  serviceIndicator: [String]
+}
+type CheckInData{
+  checkInId: String
+  checkInType: CheckInTypeEnum
+  visitLink: String
+  handOffToken: String
+  address: SchedulingAddress
+}
+
+type CheckInAppointment {
+  statusCode: String
+  statusDescription: String
+  lob: String
+  checkInData: [CheckInData]
+}
+
+input CheckInAppointmentInput {
+  checkInId: String
+  checkInType:CheckInTypeEnum
+  visitLink: String
+  handOffToken: String
+  address: AddressInput
+}
+
+enum CheckInTypeEnum {
+  IMZ_GROUP_ID_TYPE
+  IMZ_APPOINTMENT_ID_TYPE
+  MC_APPOINTMENT_ID_TYPE
+}
+
+enum CheckInStatusEnum {
+  PENDING
+  READY
+  DONE
+  NOTCHECKEDIN
+  READY_TO_CHECK_IN
+  CHECKED_IN
+}
+
+input EntitlementInput {
+  firstName: String!
+  lastName: String!
+  dateOfBirth: String!
+  memberId: String
+  phoneNumber: String
+  zipCode: String
+  isPotentialSearch: Boolean
+
+}
+
+type Entitlement {
+  statusCode: String
+  statusDescription: String
+  vpcEntitled: Boolean
+  vcEntitled: Boolean
+  isReturningUser: Boolean
+  flow: String
+  entitlementMetadata: EntitlementMetadata
+  isMatchFound: Boolean
+}
+
+type EntitlementMetadata {
+  branding: String
+  services: [String]
+}
+
+input GapDispositionInput{
+  lob: String
+  favoriteStore: String
+  encRxConnectId: String
+  dispositionInput: [DispositionInput]
+}
+input DispositionInput {
+  code: String
+  type: String
+  gapOpportunityID: String
+  rejectReason: String
+}
+
+type GapDisposition{
+  statusCode: String
+  statusDescription: String
+}
+
+type MSFTOAuthToken{
+  statusDescription: String
+  statusCode: String
+  data: MsftOAuthTokenData
+}
+
+type MsftOAuthTokenData{
+  accessToken: String
+  tokenType: String
+  expiresIn:  Int
+  extExpiresIn: Int
+}
+
+input TypeAheadRequest{
+  address: String!
+  zipCode: String
+}
+
+type TypeAheadResponse {
+  statusCode: String
+  statusDescription: String
+  addressPredictions: [AddressPrediction]
+}
+
+type AddressPrediction{
+  addressLine1: String
+  addressLine2: String
+  city: String
+  state: String
+  zipCode: String
+  fullAddress: String
+}
+
+type PreciselyTokenResponse {
+  statusCode: String
+  statusDescription: String
+  accessToken: String
+  tokenType: String
+  expiresIn: Int
+  scope: String
+}
+
+input ClinicDetailsInput{
+clinicId: String
+}
+
+type ClinicVaccineInfo{
+statusCode: String
+statusDescription: String
+clinicDetailsData: [ClinicDetailsData]
+}
+
+type ClinicDetailsData {
+maxImz: Int
+immunizationList: [ImmunizationList]
+clientData: ClientData
+clinicData: ClinicData
+}
+
+type ImmunizationList {
+code: String
+type: String
+series: String
+maximumDoses: String
+imzMinAge: String
+imzMaxAge: String
+ndc: [Ndc]
+}
+
+type ClientData {
+companyCode: String
+companyName: String
+}
+
+type ClinicData {
+clinicExpired: Boolean
+clinicStartDate: String
+clinicEndDate: String
+clinicStartTime: String
+clinicEndTime: String
+storeId: String
+originatorId: String
+clinicId: String
+clinicType: String
+clinicTimezone: String
+clinicAddress: ClinicAddress
+}
+
+input OneClickLocatorInput{
+    isVaccineEligible: Boolean
+}
+
+type OneClickLocator {
+    statusCode: String
+    statusDescription: String
+    getEligibleVaccines: PatientsEligibleVaccines
+    getVaccineEligibility: VaccineEligibility
+    getLocations: SearchLocations
+    questionnaireDataPresent: Boolean
+    consentDataPresent: Boolean
+}
+
+input GetCodeRequest {
+  code: String
+  appointmentId: String
+}
+
+type GetCodeResponse {
+  statusCode: String
+  statusDescription: String
+  response: CodeResponse
+}
+
+type CodeResponse {
+  qr: QRCode
+}
+
+type QRCode {
+  code: String
+  appointmentId: String
+}
+

@@ -1,0 +1,1365 @@
+directive @extends on INTERFACE | OBJECT
+directive @external on FIELD_DEFINITION | OBJECT
+directive @key(fields: String!, resolvable: Boolean = true) repeatable on INTERFACE | OBJECT
+directive @requires(fields: String!) on FIELD_DEFINITION
+scalar Object
+
+type Query {
+    getUsersVaccineAvailability(vaccineAvailabilityRequest : VaccineAvailabilityRequest!): GetUsersVaccineAvailability
+    getProfileInfo(id: String!, idType: ProfileIdTypeEnum!): ProfileInfo
+    getCaregivee(id: String, idType: String!): CaregiveeInfo
+    getCaregivingList(id: String, idType: ProfileIdTypeEnum): CaregiveeInfo
+    getImzAppointments(id: String, idType: String, xid: String): IMZAppointmentDetails
+    fetchUserSchedule(userRequest :  UserScheduleGetRequest) : UserScheduleResponse
+    getImzEligibility(imzEligibilityRequest:ImzEligibilityRequest!): ImzEligibilityResponse
+    getImzVaccines(dateOfBirth: String, lob: String, storeId:String, patientId:String): GetEligibleImzVaccinesOutput
+    getImmunizationQuestions(immunizationQuestionsInput: ImmunizationQuestionsInput!): [Questionnaire!]!
+    getPatient(id: String!, idType: PatientIdTypeEnum!): PatientInfo
+    storesBySearchText(searchText: String!, searchFiltersInput: SearchFiltersInput): StoreInformation
+    storesByLatLong(point: Point!,searchFiltersInput: SearchFiltersInput): StoreInformation
+    storesByStoreIds(storeIds: [String!]!): [StoreInformation]
+    storesByClinicIds(clinicIds: [String!]!): [StoreInformation]
+    getPatientV2(id: String!, idType: PatientIdTypeEnum!): PatientInfoV2
+    getCaregivingListV2(id: String, idType: ProfileIdTypeEnum): CaregiveeInfo
+    getLinkedSSKs(id: String!, idType: ProfileIdTypeEnum!): [LinkedSsk]
+    getImzClinicInfo(id: String!, idType: ImzIDTypeEnum!, encrypted: Boolean, source: String): [ImzClinic!]!
+}
+
+type Mutation  {
+    submitImzAppointment(submitImzAppointmentInput:SubmitImzAppointmentInput):SubmitImzAppointment
+    setUserSchedule(userRequest :  UserScheduleSetRequest) : UserScheduleResponse
+    flushUserSchedule(userRequest :  UserScheduleFlushRequest) : UserScheduleResponse
+    cancelImzAppointment(cancelImzAppointmentInput:IMZCancelAppointmentRequest):IMZCancelAppointmentResponse
+    rescheduleImzAppointment(rescheduleImzAppointmentInput:RescheduleImzAppointmentInput):ResubmitImzAppointment
+    processImzCheckin(processImzCheckinInput:[ProcessImzCheckinInput]):ProcessImzCheckin
+    submitImzWalkInAppointment(submitImzWalkInAppointmentInput:SubmitImzWalkInAppointmentInput):SubmitImzWalkInAppointment
+}
+
+input VaccineAvailabilityRequest {
+    source: String
+    stores: [VaccineAvailabilityStores]
+    users: [VaccineAvailabilityUsers]
+}
+
+input VaccineAvailabilityStores {
+    state: String
+    storeId: String
+}
+
+input VaccineAvailabilityUsers {
+    referenceId: String
+    dateOfBirth: String
+    vaccines: [VaccineAvailabilityVaccines]
+}
+
+input VaccineAvailabilityVaccines {
+    code: String
+    ndc: [VaccineAvailabilityNdc]
+}
+
+type VaccineAvailabilityNdc {
+    id: String
+    name: String
+    manufacturer: String
+    qad: String
+}
+
+type GetUsersVaccineAvailability {
+    stores: [ImzStores]
+}
+
+type ImzStores {
+    storeId: String
+    schedule: VaccineAvailabilitySchedule
+    users: [VaccineAvailabilityImzUsers]
+}
+
+type VaccineAvailabilitySchedule {
+    firstAvailableInventoryDate: String
+}
+
+type VaccineAvailabilityImzVaccines {
+    code: String
+    type: String
+    userType: String
+    doseType: String
+    isInvConstraint: Boolean
+    ndc: [VaccineAvailabilityNdc]
+}
+
+type VaccineAvailabilityImzUsers {
+    referenceId: String
+    restrictions: [Restrictions!]
+    availableVaccines: [VaccineAvailabilityImzVaccines!]
+    unAvailableVaccines: [UnAvailableVaccines!]
+}
+
+type UnAvailableVaccines {
+    code: String
+}
+
+type Restrictions {
+    type: String
+    code: [String]
+}
+
+enum ProfileIdTypeEnum {
+  RETAIL_PROFILE_ID_TYPE
+  RXC_RX_PATIENT_ID_TYPE
+  LOOKUP_ID_TYPE
+  RETAIL_MRN_PROFILE_ID_TYPE
+}
+
+enum PatientIdTypeEnum {
+  RETAIL_PROFILE_ID_TYPE
+  RXC_RX_PATIENT_ID_TYPE
+  MRN_PROFILE_ID_TYPE
+  SPL_HB_PATIENT_ID_TYPE
+  PBM_QL_PARTICIPANT_ID_TYPE
+
+}
+
+type PatientInfoV2 {
+    firstName: String
+    lastName: String
+    dateOfBirth: String
+    emailAddresses: [ContactPoint]
+    phoneNumbers: [ContactPoint]
+    addresses: [Address]
+    gender: String
+    id: String
+    idType: String
+    providers: [Provider]
+    race: String
+    ethnicity: String
+    nokInformation: NextOfKin
+}
+type NextOfKin{
+    firstName: String
+    lastName: String
+    relationship: String
+    addresses: [NextOfKinAddresses]
+}
+type NextOfKinAddresses{
+    line: [String]
+    city: String
+    state: String
+    postalCode: String
+    phoneNumber: String
+}
+
+type Provider {
+    id: String
+    firstName: String
+    lastName: String
+    speciality: String
+    type: String
+}
+
+type PatientInfo {
+    firstName: String
+    lastName: String
+    dateOfBirth: String
+    emailAddresses: [ContactPoint]
+    phoneNumbers: [ContactPoint]
+    addresses: [Address]
+    gender: String
+}
+
+type Address {
+    use: String
+    line: [String]
+    city: String
+    postalCode: String
+    state: String
+    country: String
+    phoneNumber: String
+}
+
+type ContactPoint {
+    value: String
+    use: String
+    valid: String
+}
+
+type Ndc {
+  id: String
+  name: String
+  manufacturer: String
+}
+
+type ProfileInfo {
+
+    id: String,
+    idType: String,
+    statusCode: String,
+    statusDescription: String,
+    dateOfBirth: String,
+    emailAddress: String,
+    firstName: String,
+    gender: String,
+    lastName: String,
+    middleName: String,
+    preferredFirstName: String,
+    zipCode: String,
+    rxConnectId: String,
+    phoneNumber: [PhoneNumber],
+    linkedIDs: [LinkedID],
+    additionalData: ProfileAdditionalData
+}
+
+type ProfileAdditionalData {
+    defaultFavStoreId: String
+}
+
+type ExtraCareDetails {
+   extracareCardNumber: String,
+   shortCardNumber: String
+}
+
+type LinkedID {
+    id: String,
+    idType: String
+}
+
+type AssuranceLevel {
+    number: String,
+    type: String
+}
+
+type PhoneNumber {
+    number: String,
+    type: String
+}
+
+type CaregiveeInfo {
+    statusCode: String,
+    statusDescription: String
+    careGiveeList: [CareGiveeProfile]
+}
+
+type CareGiveeProfile {
+    caregiveeType: String,
+    creationDate: String,
+    dateOfBirth: String,
+    firstName: String,
+    isaccountExist: String,
+    lastName: String,
+    lastSentDate: String,
+    notificationType: String,
+    notificationValue: String,
+    resendRequestAvailable: String,
+    resendRequestCount: String,
+    rxToken: String,
+    sharedID: String,
+    status: String,
+    idType: String,
+    id: String
+
+}
+
+
+type IMZAppointmentDetails {
+    appointments: [IMZAppointments]
+}
+
+type IMZAppointments {
+   id: String
+   encryptedId: String
+   encryptedRegistrationId: String
+   date: String
+   time: String
+   timeZone: String
+   timeInUTC: String
+   status: String
+   groupId: String
+   checkInStatus: CheckInStatusEnum
+   groupCheckInStatus: CheckInStatusEnum
+   actionNote: String
+   store: IMZStore
+   vaccines: [IMZVaccines]
+   patient: IMZPatient
+   linkedGroupAppts: [IMZAppointments]
+   clinicId: String
+}
+
+type IMZStore {
+    id: String,
+    idType: String
+}
+
+type IMZVaccines {
+    id: String,
+    type: String,
+    encryptedId: String,
+    code: String,
+    name: String,
+    doseNumber: String,
+    ndc: [Ndc]
+    status: String,
+    originator: String,
+    reasonCode: String,
+    reasonDescription: String,
+    updatedDate: String,
+    prescription: IMZPrescription
+    oldAppointmentData: RescheduledAppointmentData
+}
+
+type RescheduledAppointmentData {
+    id: String
+    date: String
+    time: String
+    timeZone: String
+    timeInUTC: String
+}
+
+type IMZPrescription {
+    copayAmount: String
+    rxFillNumber: String
+    rxNumber: String
+}
+
+type IMZPatient {
+    firstName: String,
+    lastName: String,
+    dateOfBirth: String,
+    id: String
+}
+
+enum CheckInStatusEnum {
+    PENDING
+    READY
+    DONE
+}
+
+input UserScheduleGetRequest {
+  id: String
+  idType: String
+  lineOfBusiness: String
+  consumer: String
+  userType: String
+}
+
+input UserScheduleSetRequest {
+   id : String
+   idType : String,
+   lineOfBusiness: String,
+   consumer: String,
+   userType: String,
+   userKeyValueState: [StateKeyValuePair]
+}
+
+input StateKeyValuePair {
+    key:String
+    value:String
+}
+
+type UserScheduleResponse {
+  statusCode: String
+  statusDescription: String
+  userSchedule: String
+}
+
+type ResponseStatus {
+  statusCode: String
+  statusDesc: String
+}
+
+type SubmitImzAppointment {
+  responseStatus: ResponseStatus
+}
+
+type SubmitImzAppointmentOutput {
+    statusCode: String
+    statusDescription: String
+}
+
+input AdditionalData {
+  category: String
+}
+
+input VoucherData {
+  planCode: String
+  voucherId: String
+  groupId: String
+}
+
+input InsuranceData {
+    groupId: String
+    insuranceType: String
+    isPatientPrimaryCardholder: String
+    memberId: String
+    relationshipWithCardHolder: String
+    RxBin: String
+    RxPCN: String
+}
+
+input MedicareData {
+    memberId: String
+}
+
+input PaymentMode {
+  typeId: Int
+  typeText: String
+  voucherData: VoucherData
+  insuranceData: [InsuranceData]
+  medicareData: MedicareData
+}
+
+
+input Immunization {
+  type: String
+  code: String
+  doseNumber: String
+  isInvConstraint: Boolean
+  gapOpportunityID: String
+  ndc: [Ndc]
+  oldVaccineData:OldVaccineData
+  rxNumber: String
+  rxFillNumber: String
+  partialFillSeqNumber: String
+  fillEditVersionNumber: String
+}
+
+input Schedule {
+  facilityId: String
+  facilityType: String
+  associatedStoreId: String
+  isSameDay: Boolean
+  selectedTimezone: String
+  selectedUTCTimestamp: String
+  encryptedAppointmentId: String
+  oldAppointmentData: OldAppointmentData
+  immunization: [Immunization]
+  reservationCode: [String]
+}
+
+input LegalAnswers {
+  questionId: String
+  answerValue: Object
+  answerText: String
+}
+
+input AnswerValue {
+    firstName: String
+    lastName: String
+    phone: String
+    addressLine1: String
+    addressLine2: String
+    city: String
+    state: String
+    zipCode: String
+    relationship: Relationship
+}
+input Relationship {
+    code: String
+}
+input EligibilityAnswers {
+  questionId: String
+  questionText: String
+  answerValue: String
+  answerText: String
+  answerFreeText: String
+  imzReference: [ImzReference]
+}
+
+input OptionalAnswers {
+  questionId: String
+  questionText: String
+  answerValue: String
+  answerText: String
+  answerFreeText: String
+  imzReference: [ImzReference]
+}
+input ImzReference {
+  code: String
+  refId: String
+}
+
+input ScreeningAnswers {
+  questionId: String
+  questionText: String
+  answerValue: String
+  answerText: String
+  answerFreeText: String
+  imzReference: [ImzReference]
+}
+
+input Patient {
+  firstName: String
+  lastName: String
+  dateOfBirth: String
+  gender: String
+  email: String
+  phone: String
+  addressLine1: String
+  addressLine2: String
+  city: String
+  state: String
+  zipCode: String
+  encryptionType: EncryptionTypeEnum
+  id: String
+  profileId: String
+}
+
+enum EncryptionTypeEnum {
+    A
+    N
+}
+
+input Registrations {
+  flow: String
+  isGapIncluded: Boolean
+  gapFlow: String
+  isGuest: String
+  originatorId: String
+  encryptedRegistrationId: String
+  paymentMode: PaymentMode
+  schedule: [Schedule]
+  legalAnswers: [LegalAnswers]
+  screeningAnswers: [ScreeningAnswers]
+  optionalAnswers: [OptionalAnswers]
+  eligibilityAnswers: [EligibilityAnswers]
+  patient: Patient
+}
+
+input SubmitImzAppointmentInput {
+  authType: String
+  source: String
+  isCallCenterRequest: Boolean
+  primaryProfileId: String
+  languageCode: String
+  additionalData: AdditionalData
+  registrations: [Registrations]
+}
+
+input IMZCancelAppointmentRequest {
+    cancelReasonCode: String
+    operation: String
+    languageCode: String
+    origin: String
+    vaccineId: [String]
+}
+
+type IMZCancelAppointmentResponseStatus {
+    statusCode: String
+    statusDesc: String
+}
+
+type IMZCancelAppointmentResponse {
+    responseStatus: IMZCancelAppointmentResponseStatus
+}
+
+input ImzEligibilityRequest {
+  source: String
+  clinicId: [String]
+  eaCampaignId: String
+  users: [ImzUsers]
+}
+
+input ImzUsers {
+  referenceId: String
+  dateOfBirth: String
+  vaccines: [Vaccines!]
+  eligibilityQuestionaires: [EligibilityQuestionaires!]
+}
+
+input EligibilityQuestionaires {
+  questionId: String
+  answerValue: String
+}
+
+input Vaccines {
+  code: String!
+  doseType: DoseType!
+}
+
+enum DoseType {
+  SEASONAL
+}
+
+type ImzEligibilityResponse {
+  eligibleClinicId: [String]
+  minScheduleDate: String
+  maxScheduleDate: String
+  users: [Users]
+}
+
+type Users {
+  referenceId: String
+  isPatientRecommended: Boolean
+  isPatientEligible: Boolean
+  ineligibilityReasonCode: String
+  ineligibilityReasonDesc: String
+  minScheduleDate: String
+  maxScheduleDate: String
+  vaccines: [ImzEligibleVaccines]
+}
+
+type ImzEligibleVaccines {
+  code: String
+  ndc: [Ndc]
+  manufacturer: [String]
+ }
+
+input RescheduleImzAppointmentInput {
+  oldRegistrationData: OldRegistrationData
+  flow: String
+  source: String
+  primaryProfileId: String
+  schedule: [Schedule]
+}
+
+input OldRegistrationData{
+
+   registrationId:String
+}
+
+input OldAppointmentData{
+
+    appointmentId:String
+}
+ 
+input OldVaccineData{
+
+    vaccineId:String
+} 
+
+type IMZGapVaccines {
+    vaccine: IMZUpsellVaccines!
+    doseNumber: Int!
+    opportunityId: String!
+}
+type IMZUpsellVaccines {
+    code: String!
+    type: String!
+    name: String!
+    rank: String!
+}
+
+type IMZEligibleVaccinesList {
+    code: String
+    name: String
+    type: String
+    minimumAge: Float
+    maximumAge: Float
+    maximumDoses: Int
+    series: String
+    isGroupEligible: String
+    category: [String]
+}
+
+type GetEligibleImzVaccinesOutput{
+    vaccines: [IMZEligibleVaccinesList]
+    upsellVaccines: [IMZUpsellVaccines]
+    gapVaccines: [IMZGapVaccines]
+
+}
+
+type AgeRestriction {
+    minAge: Float!
+    maxAge: Float!
+}
+
+type MCVaccine{
+    type: String
+    code: String
+    name: String
+    ageRestriction: AgeRestriction
+}
+
+type GetEligibleMCVaccinesOutput{
+    dob: String
+    vaccines: [MCVaccine]
+}
+
+
+type QuestionnaireAnswerOptions {
+    id: String
+
+    # AnswerOptionIdType. answer id type
+    idType: AnswerOptionIdType
+    text: String
+
+    # answerOptionId
+    answerOptionId: Float
+
+    # answerOptionIdTwo
+    answerOptionId2: Float
+
+    # answerText
+    answerText: String
+
+    # isChecked
+    isChecked: String
+
+    # summary
+    summary: String
+
+    # value
+    value: String
+
+    # isAdditionalDetail
+    additionalDetail: Boolean
+
+    # additionalDetailType
+    additionalDetailType: String
+
+    # additionalDetailText
+    additionalDetailText: String
+
+    relatedQuestion: [QuestionnaireQuestion]
+}
+
+# Following answeroption id types are supported by Digital Pharmacy Schema. spl_hb_answer_id_type - SPL_HB_ANSWER_ID_TYPE
+enum AnswerOptionIdType {
+    SPL_HB_ANSWER_ID_TYPE
+}
+
+type QuestionVaccineRef {
+    # code
+    code: String!
+
+    # refId
+    refId: String
+}
+
+type QuestionnaireQuestion {
+    id: String
+    # QuestionIdType.
+    idType: QuestionIdType
+    text: String
+    previousSelection: QuestionnaireAnswerOptions
+    answerType: String
+    answerOptions: [QuestionnaireAnswerOptions!]
+    # rxNumber
+    prescriptionNumber: String
+    # drugName
+    drugName: String
+    # QuestionCategory. category nonclinical/clinical for Specialty LOB
+    category: String
+    description: String
+    correctAnswers: [Int!]
+    errorMessage: String
+    # question vaccineRef.
+    vaccineRef: [QuestionVaccineRef!]
+}
+
+# Following Question id types are supported by Digital Pharmacy Schema. spl_hb_question_id_type - SPL_HB_QUESTION_ID_TYPE
+enum QuestionIdType {
+    SPL_HB_QUESTION_ID_TYPE
+}
+
+# Following question category are supported by Digital Pharmacy Schema.
+# Nonclinical - NONCLINICAL
+# Clinical  - CLINICAL
+enum QuestionCategoryEnum {
+    NONCLINICAL
+    CLINICAL
+    VACCINE_ELIGIBILITY
+    NDC_ASSIGNMENT
+    PRODUCT_ASSIGNMENT
+}
+
+type CheckoutAttributes {
+    # responseCount. The field is applicable for pbm
+    responseCount: String
+
+    # responseId. The field is applicable for pbm
+    responseId: String
+
+    # groupIndex. The field is applicable for specialty
+    groupIndex: String
+
+    # rxType. The field is applicable for specialty
+    rxType: String
+
+    # calendarType. The field is applicable for specialty
+    calendarType: String
+
+    # signatureRequired. The field is applicable for specialty
+    signatureRequired: String
+
+    # weatherAffected. The field is applicable for specialty
+    weatherAffected: String
+
+    # alertFlag
+    alertFlag: String
+
+    # chatbotmessage
+    chatBotMessage: String
+
+    # isLastQuestion
+    isLastQuestion: String
+}
+
+type Questionnaire {
+    # Questionnaire  Identifier
+    id: String
+
+    # QuestionnaireIdType.
+    idType: QuestionnaireIdType
+
+    # Questions model
+    questions: [QuestionnaireQuestion!]
+
+    # language
+    language: String
+
+    # context of the questionnaire, kind of questionnaire is expected for example knowledgeCheck,symptom survey etc
+    context: QuestionnaireContextEnum
+
+    # Attributes required in the checkout flow
+    others: CheckoutAttributes
+}
+
+# Following Question id types are supported by Digital Pharmacy Schema. spl_hb_questionnaire_id_type - SPL_HB_QUESTIONNAIRE_ID_TYPE , RETAIL_QUESTIONNAIRE_ID_TYPE - RETAIL_QUESTIONNAIRE_ID_TYPE
+enum QuestionnaireIdType {
+    RETAIL_QUESTIONNAIRE_ID_TYPE
+    SPL_HB_QUESTIONNAIRE_ID_TYPE
+}
+
+# Based on context value, questionnaire details are retrieved. Example - knowledge_check gives knowledge check questionnaire details, symptom_survey gives symptom survey questionnaire details
+enum QuestionnaireContextEnum {
+    KNOWLEDGE_CHECK
+    SYMPTOM_SURVEY
+    IMZ_ELIGIBILITY_QUESTION
+    IMZ_SCREENING_QUESTION
+    MC_CORE_ELIGIBILITY_QUESTION
+    MHC_SCHEDULING_QUESTION
+    MC_LEGAL_QUESTION
+    MHC_LEGAL_QUESTION
+    IMZ_LEGAL_QUESTION
+    IMZ_ADDITIONAL_QUESTION
+    IMZ_CANCEL_REASON
+    HPI
+    HPIVIRTUAL
+    DEPRESSIONSCREENING
+    DEPRESSIONSCREENINGPCP
+    SOCIALNEEDS
+    ADF
+    SP
+    DEMOGRAPHICS
+    VACCINE
+    TB
+    TREAT_ADDITIONALINFO
+    TREAT_WEIGHT
+    TEST_AND_TREAT_ROUTING_PAGE
+    TREAT_MEDICATIONS_CONTINUED
+    TEST_AND_TREAT_ELIGIBILITY
+    TEST_AND_TREAT_ADDITIONALINFO
+    TEST_AND_TREAT_NEXTSTEPSCONTINUE
+    TEST_AND_TREAT_MEDICAL_HISTORY
+    TEST_AND_TREAT_MEDICATIONS
+    TEST_AND_TREAT_MEDICAL_HISTORY_CONTINUED
+    TEST_AND_TREAT_BLOODWORK
+    TEST_AND_TREAT_SYMPTOMS
+    TEST_AND_TREAT_SYMPTOMS_HISTORY
+    TEST_AND_TREAT_NEXTSTEPS
+    TEST_AND_TREAT_MEDICATIONS_CONTINUED
+    TEST_AND_TREAT_OPTIONS
+    TEST_AND_TREAT_CAREOPTIONS
+    TEST_AND_TREAT_PERSONALINFO
+    TEST_AND_TREAT_PRIMARYCAREINFO,
+    TEST_ONLY_PERSONALINFO,
+    TEST_AND_TREAT_PERSONALINFO_MC,
+    MC_VACCINE_PATIENT_PROFILE_INFO,
+    MC_VACCINE_SCREENING_QUESTION,
+    MC_INSURANCE_COVERAGE
+
+}
+
+input ClinicalQuestionnaireInput {
+    # prescription input
+    selectedPrescriptions: [QuestionnairePrescriptionInput!]
+
+    # questionid
+    questionId: String
+
+    # answerOptionId
+    answerOptionId: String
+}
+
+input QuestionnairePrescriptionInput {
+    # Prescription Identifier
+    id: String
+
+    # Druginput. This field is applicable to Specialty Line of Business
+    drug: DrugInput
+}
+
+input DrugInput {
+    # drugName. This field is applicable for specialty line of business
+    name: String
+
+    # Drugndc
+    ndcId: String
+
+    # ancillaryProductInd
+    ancillaryProductInd: String
+
+    # fillRequestType. This field is applicable to Retail Line of Business
+    fillRequestType: FillRequestEnum
+}
+
+# Following fill type are supported by Digital Pharmacy Schema.
+# Faststart - FASTSTART
+# Refill  - REFILL
+# Renew - RENEW
+# FirstFill - FIRSTFILL
+# Transfer - TRANSFER
+# Cancel - CANCEL
+enum FillRequestEnum {
+    FASTSTART
+    REFILL
+    RENEW
+    TRANSFER
+    FIRSTFILL
+    CANCEL
+}
+
+input ImmunizationQuestionsInput {
+    # facilityId
+    facilityId: String!
+    # source
+    source: String!
+    # sameDaySchedule
+    sameDaySchedule: Boolean!
+    # dateOfBirth
+    dateOfBirth: String!
+    # flowName
+    flowName: String!
+    # VaccineInput
+    vaccines: [QuestionVaccineInput!]!
+    # context of the questionnaire, kind of questionnaire is expected for example knowledgeCheck,symptom survey etc
+    context: QuestionnaireContextEnum
+    category:[String]
+}
+
+input QuestionVaccineInput {
+    # code
+    code: String
+
+    # type
+    type: String
+
+    # ndc
+    ndc: [DrugInput!]
+}
+
+type ResubmitImzAppointment {
+  responseStatus: ResponseStatus
+}
+
+input UserScheduleFlushRequest {
+    id : String
+    idType : String
+    lineOfBusiness: String
+    consumer: String
+    userType: String
+    flushCache : Boolean
+}
+
+input SearchFiltersInput {
+  pageNum: Int
+  searchRadiusInMiles: Int
+  maxItemsInResult: Int
+  resultsPerPage: Int
+  searchFilterType: SearchFilterType
+  clinicLOB: [ClinicLOB]
+}
+
+enum SearchFilterType {
+  CLINIC_TYPE
+  STORE_TYPE
+}
+
+input ClinicLOB {
+  lobType: String!
+  reasonId: [String]
+}
+
+type BannerBrands {
+  description: String
+  indicator: String
+}
+
+type Fax {
+  value: String
+  system: String
+}
+
+type Lob {
+  id: String
+  type: String
+}
+
+type Phone {
+  system: String
+  value: String
+}
+
+type BreakHours {
+  name: String
+  endTime: String
+  startTime: String
+}
+
+type Wed {
+  endTime: String
+  isClosed: Boolean
+  isOpen24H: Boolean
+  startTime: String
+  breakHours: [BreakHours]
+}
+
+type Tue {
+  endTime: String
+  isClosed: Boolean
+  isOpen24H: Boolean
+  startTime: String
+  breakHours: [BreakHours]
+}
+
+type Thu {
+  endTime: String
+  isClosed: Boolean
+  isOpen24H: Boolean
+  startTime: String
+  breakHours: [BreakHours]
+}
+
+type Sun {
+  endTime: String
+  isClosed: Boolean
+  isOpen24H: Boolean
+  startTime: String
+  breakHours: [BreakHours]
+}
+
+type Sat {
+  endTime: String
+  isClosed: Boolean
+  isOpen24H: Boolean
+  startTime: String
+  breakHours: [BreakHours]
+}
+
+type Mon {
+  endTime: String
+  isClosed: Boolean
+  isOpen24H: Boolean
+  startTime: String
+  breakHours: [BreakHours]
+}
+
+type Fri {
+  endTime: String
+  isClosed: Boolean
+  isOpen24H: Boolean
+  startTime: String
+  breakHours: [BreakHours]
+}
+
+type RegularHours {
+  wed: Wed
+  tue: Tue
+  thu: Thu
+  sun: Sun
+  sat: Sat
+  mon: Mon
+  fri: Fri
+}
+
+type ServiceOpenHours {
+  serviceName: String
+  regularHours: RegularHours
+  holidayHours: [String]
+  emergencyHours: [String]
+}
+
+type StoreData {
+  phone: Phone
+  serviceOpenHours: ServiceOpenHours
+}
+
+type Sds {
+  serviceId: String
+  serviceName: String
+  displayToCustomer: String
+}
+
+type Pss {
+  displayToCustomer: String
+  serviceId: String
+  serviceName: String
+}
+
+type ClinicServices {
+  sds: [Sds]
+  pss: [Pss]
+  clinicServiceMap: [String]
+}
+
+type MinuteClinicInfo {
+  clinicID: String
+  name: String
+  lob: Lob
+  storeData: StoreData
+  clinicServices: ClinicServices
+  flags: [String]
+}
+
+type StoreInformation {
+  distance: String
+  id: String
+  address: Address
+  bannerBrands: [BannerBrands]
+  services: [String]
+  fax: Fax
+  minuteClinicInfo: [MinuteClinicInfo]
+  pharmacyInfo: PharmacyInfo
+  position: Position
+  timezone: String
+  serviceIndicators: [String]
+}
+
+type PharmacyInfo {
+  storeData: StoreData
+}
+
+type Position {
+  latitude: String
+  longitude: String
+}
+
+input Point {
+  latitude: String
+  longitude: String
+}
+
+input ProcessImzCheckinInput {
+    id: String
+    idType: ImzTypeEnum
+}
+
+enum ImzTypeEnum {
+    IMZ_GROUP_ID_TYPE
+    IMZ_APPOINTMENT_ID_TYPE
+}
+
+type ProcessImzCheckin {
+    responseStatus: ResponseStatus
+}
+
+type LinkedSsk {
+    id: String
+    idType: String
+    lookupId: String
+    origin: String
+    primary: Boolean
+}
+
+enum ImzIDTypeEnum {
+    IMZ_GROUP_ID_TYPE
+    IMZ_APPOINTMENT_ID_TYPE
+    IMZ_REGISTRATION_ID_TYPE
+    RXC_RX_PATIENT_ID_TYPE
+    IMZ_CLINIC_ID_TYPE
+}
+
+type ImzClinic {
+    """
+    clinic expiration indicator
+    """
+    isExpired: Boolean!
+
+    """
+    clinic start date
+    """
+    startDate: String!
+
+    """
+    clinic end date
+    """
+    endDate: String!
+
+    """
+    clinic start time
+    """
+    startTime: String!
+
+    """
+    clinic end time
+    """
+    endTime: String!
+
+    """
+    Facility Id
+    """
+    facilityId: String!
+
+    """
+    originator ID
+    """
+    originatorId: String
+
+    """
+    clinic ID
+    """
+    id: String!
+
+    """
+    Scheduler Ref ID
+    """
+    schedulerRefId: String
+
+    """
+    Scheduler Ref Type
+    """
+    schedulerRefType: String
+
+    """
+    Clinic Timezone
+    """
+    timezone: String
+
+    """
+    Clinic address
+    """
+    address: ImzClinicAddress!
+
+    """
+    Client Code
+    """
+    clientCode: String
+
+    """
+    Client Name
+    """
+    clientName: String
+
+    """
+    Vaccines of Appointment.
+    """
+    vaccines: [ClinicVaccine!]!
+}
+
+type ImzClinicAddress {
+    addressLine1: String
+    addressLine2: String
+    city: String
+    state: String
+    zip: String
+}
+type ClinicVaccine @key(fields: "code") {
+    """
+    Vaccine Code.
+    """
+    code: ID!
+
+    """
+    Vaccine Type.
+    """
+    type: String!
+
+    """
+    Vaccine Name.
+    """
+    name: String!
+
+    """
+    Vaccine Series.
+    """
+    series: ImzSeriesType!
+
+    """
+    Minimum Age for Vaccine.
+    """
+    minimumAge: Float!
+
+    """
+    Maximum Age for Vaccine.
+    """
+    maximumAge: Float!
+
+    """
+    Maximum number of doses for Vaccine.
+    """
+    maximumDoses: Int!
+
+    """
+    Line of Business.
+    """
+    lob: [LobType!]!
+
+    """
+    Group Eligibility of Vaccine.
+    """
+    isGroupEligible: String
+
+    """
+    NDC output info.
+    """
+    ndc: [ImzNDCOutput!]
+}
+
+"""
+Types of Line of Business (Pharmacy, MinuteClinic).
+"""
+enum LobType {
+    PHARMACY
+    MINUTECLINIC
+}
+
+type ImzNDCOutput {
+    """
+    NDC ID.
+    """
+    id: String
+
+    """
+    NDC Name.
+    """
+    name: String
+
+    """
+    Manufacturer Name.
+    """
+    manufacturer: String
+
+    """
+    QAD value for the NDC.
+    """
+    qad: String
+
+    """
+    NDC minimum age.
+    """
+    minAge: String
+
+    """
+    NDC maximum age.
+    """
+    maxAge: String
+}
+
+"""
+Vaccine Series types supported by Digital Pharmacy Schema.
+"""
+enum ImzSeriesType {
+    SINGLE
+    MULTI
+    BOOSTER
+}
+
+input SubmitImzWalkInAppointmentInput {
+    authType: String
+    source: String
+    languageCode: String
+    registrations: [Registrations]
+}
+
+type SubmitImzWalkInAppointment {
+    responseStatus: ResponseStatus
+}
