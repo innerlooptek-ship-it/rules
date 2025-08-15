@@ -309,7 +309,26 @@ public class SchedulingService implements  ISchedulingService{
             }
         }
         
-        return lastElementCandidates != null ? lastElementCandidates : new HashSet<>();
+        Set<String> positionalLastElements = lastElementCandidates != null ? lastElementCandidates : new HashSet<>();
+        
+        if (positionalLastElements.isEmpty()) {
+            Set<String> textPatternElements = new HashSet<>();
+            
+            for (QuestionnaireUIResponse.QuestionnaireData data : patientDataList) {
+                if (data.getQuestions() != null) {
+                    for (QuestionnaireUIResponse.Question question : data.getQuestions()) {
+                        if (question.getText() != null && 
+                            question.getText().toLowerCase().contains("none of the statements apply")) {
+                            textPatternElements.add(question.getId());
+                        }
+                    }
+                }
+            }
+            
+            return textPatternElements;
+        }
+        
+        return positionalLastElements;
     }
 
 public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeContext(QuestionnaireUIRequest.ScheduleQuestionnaireInput questionnaireInput,
