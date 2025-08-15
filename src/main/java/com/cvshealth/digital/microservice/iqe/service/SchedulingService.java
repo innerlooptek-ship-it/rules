@@ -10,7 +10,6 @@ import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIResponse;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
 import com.cvshealth.digital.microservice.iqe.mapper.DetailMapper;
 import com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants;
-import com.datastax.oss.protocol.internal.util.Flags;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -26,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants.EVC_B2B;
@@ -54,27 +52,27 @@ public class SchedulingService implements  ISchedulingService{
     private final ResourceLoader resourceLoader;
     private final DetailMapper detailMapper;
     private final StateMinorAgeConfig stateMinorAgeConfig;
-    @PostConstruct
-    private void postConstruct() throws IOException {
-        errorMessages = getMessages.getMessages();
-
-        final String MHC_LEGAL_JSON = "classpath:questionnaire/mhc/mhc_legal.json";
-        final String MCCORE_LEGAL_JSON = "classpath:questionnaire/mccore/mc_legal.json";
-        final String MCCORE_WOUND_JSON = "classpath:questionnaire/mccore/mccore-wound.json";
-        final String MCCORE_SCHEDULING_JSON = "classpath:questionnaire/mccore/mc_scheduling.json";
-        final String MHC_PSYCHIATRY_SCHEDULING_JSON = "classpath:questionnaire/mhc/mhc_psychiatry_scheduling.json";
-
-        mhcLegalJson = loadJson(MHC_LEGAL_JSON, new TypeReference<>() {});
-        mcCoreJson = loadJson(MCCORE_WOUND_JSON, new TypeReference<>() {});
-        mcCoreJsonLegal = loadJson(MCCORE_LEGAL_JSON, new TypeReference<>() {});
-        mcCoreJsonScheduling = loadJson(MCCORE_SCHEDULING_JSON, new TypeReference<>() {});
-        mhcPsychiatryJsonScheduling = loadJson(MHC_PSYCHIATRY_SCHEDULING_JSON, new TypeReference<>() {});
-    }
-    private <T> T loadJson(String resourcePath, TypeReference<T> typeReference) throws IOException {
-        Resource resource = resourceLoader.getResource(resourcePath);
-
-        return objectMapper.readValue(resource.getContentAsString(StandardCharsets.UTF_8), typeReference);
-    }
+//    @PostConstruct
+//    private void postConstruct() throws IOException {
+//        errorMessages = getMessages.getMessages();
+//
+//        final String MHC_LEGAL_JSON = "classpath:questionnaire/mhc/mhc_legal.json";
+//        final String MCCORE_LEGAL_JSON = "classpath:questionnaire/mccore/mc_legal.json";
+//        final String MCCORE_WOUND_JSON = "classpath:questionnaire/mccore/mccore-wound.json";
+//        final String MCCORE_SCHEDULING_JSON = "classpath:questionnaire/mccore/mc_scheduling.json";
+//        final String MHC_PSYCHIATRY_SCHEDULING_JSON = "classpath:questionnaire/mhc/mhc_psychiatry_scheduling.json";
+//
+//        mhcLegalJson = loadJson(MHC_LEGAL_JSON, new TypeReference<>() {});
+//        mcCoreJson = loadJson(MCCORE_WOUND_JSON, new TypeReference<>() {});
+//        mcCoreJsonLegal = loadJson(MCCORE_LEGAL_JSON, new TypeReference<>() {});
+//        mcCoreJsonScheduling = loadJson(MCCORE_SCHEDULING_JSON, new TypeReference<>() {});
+//        mhcPsychiatryJsonScheduling = loadJson(MHC_PSYCHIATRY_SCHEDULING_JSON, new TypeReference<>() {});
+//    }
+//    private <T> T loadJson(String resourcePath, TypeReference<T> typeReference) throws IOException {
+//        Resource resource = resourceLoader.getResource(resourcePath);
+//
+//        return objectMapper.readValue(resource.getContentAsString(StandardCharsets.UTF_8), typeReference);
+//    }
     public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaire(QuestionnaireUIRequest.ScheduleQuestionnaireInput questionnaireInput,
                                                                               QuestionnaireContextEnum context,
                                                                               Map<String, String> headerMap, Map<String, Object> eventMap) throws CvsException, IOException {
