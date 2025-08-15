@@ -122,7 +122,7 @@ public class SchedulingService implements  ISchedulingService{
                                 try {
                                     return getIQEQuestionnaireIntakeContext(questionnaireInput, dataInput, con, headerMap, eventMap).map(k -> {
                                         if(k.getQuestionnaireData() != null && !k.getQuestionnaireData().isEmpty()) {
-                                            return k.getQuestionnaireData().getFirst();
+                                            return k.getQuestionnaireData().get(0);
                                         }
                                         return new QuestionnaireUIResponse.QuestionnaireData();
                                     });
@@ -206,17 +206,17 @@ public class SchedulingService implements  ISchedulingService{
         }
         else if(Objects.equals(context, QuestionnaireContextEnum.MHC_SCHEDULING_QUESTION)){
             List<QuestionnaireUIResponse.QuestionnaireData> questionList = new ArrayList<>(mcCoreJsonScheduling);
-            if (questionnaireInput.getFlow().equals(EVC_B2B) && ((questionnaireInput.getState() != null && questionnaireInput.getState().equals(STATE_MA)) || (isNotEmpty(questionnaireInput.getQuestionnaireDataInput().getFirst().getServices()) && MA_REASON_IDS.contains(questionnaireInput.getQuestionnaireDataInput().getFirst().getServices().getFirst().getReasonId())))){
+            if (questionnaireInput.getFlow().equals(EVC_B2B) && ((questionnaireInput.getState() != null && questionnaireInput.getState().equals(STATE_MA)) || (isNotEmpty(questionnaireInput.getQuestionnaireDataInput().get(0).getServices()) && MA_REASON_IDS.contains(questionnaireInput.getQuestionnaireDataInput().get(0).getServices().get(0).getReasonId())))){
                 QuestionnaireUIResponse.QuestionnaireData questionnaireModel = new QuestionnaireUIResponse.QuestionnaireData();
-                questionnaireModel.setContext(mcCoreJsonScheduling.getFirst().getContext());
-                questionnaireModel.setQuestions(new ArrayList<>(mcCoreJsonScheduling.getFirst().getQuestions().stream().filter(question -> !question.getId().equals(MHC_SCHEDULING_CONTEXT_EAP_QUESTION_ID)).toList()));
+                questionnaireModel.setContext(mcCoreJsonScheduling.get(0).getContext());
+                questionnaireModel.setQuestions(new ArrayList<>(mcCoreJsonScheduling.get(0).getQuestions().stream().filter(question -> !question.getId().equals(MHC_SCHEDULING_CONTEXT_EAP_QUESTION_ID)).toList()));
                 questionList.clear();
                 questionList.add(questionnaireModel);
             }
             return Mono.just(
                     getQuestionnaireUIMCResponse(
                             questionnaireInput,
-                            equalsIgnoreCase(questionnaireInput.getFlow(),EVC_B2B) && isNotEmpty(questionnaireInput.getQuestionnaireDataInput().getFirst().getServices()) && questionnaireInput.getQuestionnaireDataInput().getFirst().getServices().getFirst().getReasonId().equals(REASON_ID_600000014) ? mhcPsychiatryJsonScheduling : questionList,
+                            equalsIgnoreCase(questionnaireInput.getFlow(),EVC_B2B) && isNotEmpty(questionnaireInput.getQuestionnaireDataInput().get(0).getServices()) && questionnaireInput.getQuestionnaireDataInput().get(0).getServices().get(0).getReasonId().equals(REASON_ID_600000014) ? mhcPsychiatryJsonScheduling : questionList,
                             questionnaireInput.getFlow()
                     )
             );
