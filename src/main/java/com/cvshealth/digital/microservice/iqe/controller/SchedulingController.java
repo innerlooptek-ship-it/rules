@@ -7,7 +7,7 @@ import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIResponse;
 import com.cvshealth.digital.microservice.iqe.dto.SchedulingMetricsService;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
 import com.cvshealth.digital.microservice.iqe.service.SchedulingService;
-import com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
 import com.cvshealth.digital.microservice.iqe.utils.LoggingUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants.*;
-import static com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants.TEST_TREAT;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.*;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.TEST_TREAT;
 import static com.cvshealth.digital.microservice.iqe.utils.LoggingUtils.populateEventMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 

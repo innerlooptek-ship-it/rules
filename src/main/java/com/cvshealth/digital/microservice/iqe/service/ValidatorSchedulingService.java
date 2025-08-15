@@ -6,7 +6,7 @@ import com.cvshealth.digital.microservice.iqe.config.MessageConfig;
 import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIRequest;
 import com.cvshealth.digital.microservice.iqe.dto.VaccineInput;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
-import com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
 import com.cvshealth.digital.microservice.iqe.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

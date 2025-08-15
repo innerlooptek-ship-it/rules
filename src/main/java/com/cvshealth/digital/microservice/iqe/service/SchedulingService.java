@@ -9,7 +9,7 @@ import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIRequest;
 import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIResponse;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
 import com.cvshealth.digital.microservice.iqe.mapper.DetailMapper;
-import com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -27,8 +27,8 @@ import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants.EVC_B2B;
-import static com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants.MC_CORE;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.EVC_B2B;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.MC_CORE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 @Service

@@ -1,7 +1,8 @@
 package com.cvshealth.digital.microservice.iqe.constants;
 
-
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 
 public interface SchedulingConstants {
 
@@ -352,4 +353,19 @@ public interface SchedulingConstants {
 	public static final String SUCCESS_RESPONSE_DELETE_BY_ACTION_ID="{\"statusCode\":\"0000\",\"statusDescription\":\"ActionIddeletedsuccessfully\"}";
 	public static final String FAILURE_RESPONSE_DELETE_QUESTION_BY_ACTION_ID="{\"statusCode\":\"5009\",\"errorMessage\":\"ActionIdnotfound\"}";
 	public static final String RELATED_QUESTIONS_REQUEST="{\"questions\":[{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"5fe33235-7766-4106-bba2-15b1a1f9decc\",\"text\":\"Areyoupregnant?\",\"answerType\":\"radio\",\"answerOptionIds\":[\"1426cb27-f5c8-413b-a9c2-40857256ad8e\",\"6e598a91-5f8b-4464-9d8c-301419abc3e5\"],\"answerOptions\":[{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"5fe33235-7766-4106-bba2-15b1a1f9decc\",\"answerOptionId\":\"1426cb27-f5c8-413b-a9c2-40857256ad8e\",\"text\":\"Yes\",\"value\":\"Yes\",\"sequenceId\":1},{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"5fe33235-7766-4106-bba2-15b1a1f9decc\",\"answerOptionId\":\"6e598a91-5f8b-4464-9d8c-301419abc3e5\",\"text\":\"No\",\"value\":\"No\",\"sequenceId\":2}],\"characterLimit\":0,\"sequenceId\":1},{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"f10e586f-2772-41a5-ab61-470afc676949\",\"text\":\"haveyougivenborthinthepast2weeks?\",\"answerType\":\"radio\",\"answerOptionIds\":[\"5781507a-75a9-4850-b0bc-a15f3a2d1fef\",\"3aa6e8ce-0de7-4d10-a481-e77d6635abe0\"],\"answerOptions\":[{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"f10e586f-2772-41a5-ab61-470afc676949\",\"answerOptionId\":\"5781507a-75a9-4850-b0bc-a15f3a2d1fef\",\"text\":\"Yes\",\"value\":\"Yes\",\"sequenceId\":1},{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"f10e586f-2772-41a5-ab61-470afc676949\",\"answerOptionId\":\"3aa6e8ce-0de7-4d10-a481-e77d6635abe0\",\"text\":\"No\",\"value\":\"No\",\"sequenceId\":2}],\"characterLimit\":0,\"sequenceId\":2},{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"c01ccf09-9d6b-471d-bd63-d60820438474\",\"text\":\"Areyoubreastfeeding?\",\"answerType\":\"radio\",\"answerOptionIds\":[\"d9e315fc-ec2c-4bd9-a7f4-7647e117958d\",\"98b9c949-f805-4780-bb91-edfdef4ca019\"],\"answerOptions\":[{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"c01ccf09-9d6b-471d-bd63-d60820438474\",\"answerOptionId\":\"d9e315fc-ec2c-4bd9-a7f4-7647e117958d\",\"text\":\"Yes\",\"value\":\"Yes\",\"sequenceId\":1},{\"actionId\":\"b393e40f-9a9d-4f97-9d1b-920898428a68\",\"questionId\":\"c01ccf09-9d6b-471d-bd63-d60820438474\",\"answerOptionId\":\"98b9c949-f805-4780-bb91-edfdef4ca019\",\"text\":\"No\",\"value\":\"No\",\"sequenceId\":2}],\"characterLimit\":0,\"sequenceId\":3}]}";
+
+	public static final String MC_CORE = "MC_CORE";
+	public static final String TEST_TREAT = "TEST_TREAT";
+	public static final String EVC_B2B = "EVC_B2B";
+	public static final String IQE_MC_CORE_OPS_NAME = "getIQEMcCoreQuestions";
+	public static final String IQE_OPS_NAME = "getIQEGetQuestions";
+	public static final String FLOW_VM = "VM";
+	public static final String STATE_MA = "MA";
+	public static final String MHC_SCHEDULING_CONTEXT_EAP_QUESTION_ID = "MHC_SCHEDULING_CONTEXT_EAP_QUESTION_ID";
+	public static final String REASON_ID_600000014 = "600000014";
+	public static final List<String> MA_REASON_IDS = Arrays.asList("600000014", "600000015");
+	public static final String IQE_MC_CORE_RESP_TIME = "IQE_MC_CORE_RESP_TIME";
+	public static final String IQE_RESP_TIME = "IQE_RESP_TIME";
+	public static final String VACCINE = "VACCINE";
+	public static final String MHC = "MHC";
 }
