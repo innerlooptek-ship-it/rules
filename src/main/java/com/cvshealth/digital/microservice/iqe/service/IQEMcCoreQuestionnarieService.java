@@ -7,8 +7,8 @@ import com.cvshealth.digital.microservice.iqe.config.MessageConfig;
 import com.cvshealth.digital.microservice.iqe.dto.IQEMcCoreQuestionnarieRequest;
 import com.cvshealth.digital.microservice.iqe.dto.IQEMcCoreQuestionnarieResponse;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
-import com.cvshealth.digital.microservice.iqe.udt.LoggingUtils;
-import com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.utils.LoggingUtils;
+import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +28,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants.IQE_MC_CORE_OPS_NAME;
-import static com.cvshealth.digital.microservice.iqe.udt.SchedulingConstants.IQE_OPS_NAME;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.IQE_MC_CORE_OPS_NAME;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.IQE_OPS_NAME;
 
 
 @Service
