@@ -6,6 +6,9 @@ import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIRequest;
 import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIResponse;
 import com.cvshealth.digital.microservice.iqe.dto.SchedulingMetricsService;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
+import com.cvshealth.digital.microservice.iqe.model.EnrollProfile;
+import com.cvshealth.digital.microservice.iqe.model.GetConsent;
+import com.cvshealth.digital.microservice.iqe.model.GetConsentInput;
 import com.cvshealth.digital.microservice.iqe.service.SchedulingService;
 import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
 import com.cvshealth.digital.microservice.iqe.utils.LoggingUtils;
@@ -302,5 +305,34 @@ public class SchedulingController {
             return questionnaireInput.getQuestionnaireDataInput().get(0).getServices().get(0).getReasonMappingId() != null && reasonMappingIds.contains(questionnaireInput.getQuestionnaireDataInput().get(0).getServices().get(0).getReasonMappingId());
         }
         return false;
+    }
+    @QueryMapping
+    public Mono<GetConsent> getSchedulingConsents(@Argument String id, @Argument String idType, @Argument GetConsentInput consentInput, @ContextValue("headers") Map<String,String> headerMap, @Argument EnrollProfile profile) throws CvsException {
+        long startTime = System.currentTimeMillis();
+
+        String methodName = "getSchedulingConsents";
+
+        Map<String, Object> eventMap = populateEventMap(
+                CLASS_NAME,
+                methodName,
+                "getSchedulingConsents" ,
+                "This service is used to get SchedulingConsents",
+                headerMap
+        );
+
+        if(profile != null) {
+            id = StringUtils.isNotBlank(profile.getId()) ? profile.getId() : id;
+            idType = profile.getIdType().name() != null ? profile.getIdType().name(): idType;
+        }
+        return schedulingService.getSchedulingConsents(id,idType,consentInput,eventMap,headerMap)
+                .doFinally(signalType -> {
+                    long endTime = System.currentTimeMillis();
+                    long elapsedTime = endTime - startTime;
+                    eventMap.put(SchedulingConstants.RESP_TIME, elapsedTime);
+                    logUtils.exitEventLogging(logger,eventMap);
+                    schedulingMetricsService.incrementTransactionCounter(methodName , "getConsents");
+                    schedulingMetricsService.recordResponseTime(methodName,
+                            endTime - startTime , "getConsents");
+                });
     }
 }

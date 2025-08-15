@@ -10,10 +10,14 @@ import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIResponse;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
 import com.cvshealth.digital.microservice.iqe.mapper.DetailMapper;
 import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.model.GetConsent;
+import com.cvshealth.digital.microservice.iqe.model.GetConsentInput;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,8 @@ import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstan
 import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.MC_CORE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import static org.drools.core.management.DroolsManagementAgent.logger;
+
 @Service
 @RequiredArgsConstructor
 public class SchedulingService implements  ISchedulingService{
@@ -364,6 +370,149 @@ public class SchedulingService implements  ISchedulingService{
                 });
     }
 
+    public void validateString(String value, String statusCode, ErrorKey errorKey, Map<String, Object> tags) throws CvsException {
+        if (StringUtils.isEmpty(value)) throwValidationException(statusCode, errorKey, tags);
+    }
+    @Override
+    public Mono<GetConsent> getSchedulingConsents(String id, String idType, GetConsentInput consentInput, Map<String, Object> tags, Map<String, String> headerMap) throws CvsException {
+        logger.debug("Entering getSchedulingConsents method of SchedulingService....");
+
+        Map<String,Object> eventMap = new HashMap<>();
+        eventMap.putAll(tags);
+        tags.put("eventMap", eventMap);
+       // validationUtils.validateString(consentInput.getFlow(), "MISSING_FLOW", ErrorKey.GET_CONSENTS, eventMap);
+
+        // VM domain service
+        if(consentInput.getFlow().equalsIgnoreCase("VM")) {
+            validatorSchedulingService.validateGetConsent(consentInput, eventMap);
+            return vmService.getVMConsents(id,idType,consentInput,tags,headerMap).flatMap(vmGetConsentsResponse -> {
+                GetConsent getConsent = GetConsent.builder().consentsData(vmGetConsentsResponse.getConsentsData()).build();
+                return Mono.just(getConsent);
+            });
+        }
+        else if(consentInput.getFlow().equalsIgnoreCase("VACCINE")) {
+
+//            if (featureProperties.getLive().containsKey("enableSchedulingConsents") && Boolean.FALSE.equals(featureProperties.getLive().get("enableSchedulingConsents"))) {
+//                throw new CvsException(HttpStatus.BAD_REQUEST.value(), "FEATURE_NOT_ENABLED", messagesConfig.getMessages().get("consent.FEATURE_NOT_ENABLED"),
+//                        messagesConfig.getMessages().get("consent.FEATURE_NOT_ENABLED"), "FEATURE_NOT_ENABLED");
+//            }
+            validatorSchedulingService.validateGetConsentsForScheduling(consentInput, eventMap);
+            boolean isGroupAppointment = consentInput.getConsentsDataInput() != null && !CollectionUtils.isEmpty(consentInput.getConsentsDataInput()) && consentInput.getConsentsDataInput().size() > 1;
+
+            String lob = StringUtils.isNotBlank(consentInput.getLob()) ? consentInput.getLob().toUpperCase() : LobEnum.CLINIC.name();
+            String modality = StringUtils.isNotBlank(consentInput.getModality()) ? consentInput.getModality().toUpperCase() : ModalityEnum.BnMInPerson.name();
+            String brand = StringUtils.isNotBlank(consentInput.getBrand()) ? consentInput.getBrand().toUpperCase(): BrandEnum.MC.name();
+
+            return Flux.fromIterable(consentInput.getConsentsDataInput()).flatMap(consentDataInput -> {
+                        String patientId = null;
+                        try {
+                            patientId = CvsCrypto.decrypt(consentDataInput.getEncMCPatientId(), dhsSchedulingConfigs.getScheduleEncryptDecryptKey());
+                        } catch (Exception e) {
+                            tags.put("mrnEncryptionFailed", "true");
+                        }
+                        Mono<MCITGetPatientConsentsResponse> getPatientConsentsResponseMono = Mono.just(MCITGetPatientConsentsResponse.builder().build());
+                        if(StringUtils.isNotBlank(patientId)) {
+                            getPatientConsentsResponseMono =  mcitGetPatientConsentsService.getMCITPatientConsents(patientId, consentDataInput.getDateOfBirth(), consentInput.getLob(), consentInput.getState(), consentInput.getClinicId(), tags, headerMap);
+                        }
+
+                        return getPatientConsentsResponseMono.flatMap(mcitGetPatientConsentsResponse -> {
+                            boolean hasNopConsent = false;
+                            boolean hasNjiisConsent = false;
+                            if (mcitGetPatientConsentsResponse.getResponse() != null && mcitGetPatientConsentsResponse.getResponse().getStatusRec() != null && mcitGetPatientConsentsResponse.getResponse().getStatusRec().getStatusCode() == 0) {
+                                hasNopConsent = mcitGetPatientConsentsResponse.getResponse().getGetPatientConsent2021Response().getConsentAcknowledgementList().stream().anyMatch(consentAcknowledgement -> consentAcknowledgement.getConsentKey().equalsIgnoreCase("nop") && consentAcknowledgement.isAcknowledged());
+                                hasNjiisConsent = mcitGetPatientConsentsResponse.getResponse().getGetPatientConsent2021Response().getConsentAcknowledgementList().stream().anyMatch(consentAcknowledgement -> consentAcknowledgement.getConsentKey().equalsIgnoreCase("njiis") && consentAcknowledgement.isAcknowledged());
+                            }
+                            boolean isHidden = false;
+                            int age = DateUtil.calculateAge(consentDataInput.getDateOfBirth());
+                            String authType = StringUtils.isNotBlank(consentInput.getAuthType()) ? consentInput.getAuthType().toUpperCase() : AuthTypeEnum.GUEST.name();
+                            if (AuthTypeEnum.LOA1.name().equalsIgnoreCase(authType) || AuthTypeEnum.LOA2.name().equalsIgnoreCase(authType) || (AuthTypeEnum.MFA.name().equalsIgnoreCase(authType) && age >= 18)) {
+                                isHidden = true;
+                            }
+                            String relation = null;
+                            if(StringUtils.isNotBlank(consentDataInput.getRelation())) {
+                                relation =  Objects.requireNonNull(ConsentRelationEnum.fromString(consentDataInput.getRelation())).getRelation();
+                            }
+
+                            // Variables for rule evaluation
+                            Map<String, Object> variables = new HashMap<>();
+                            variables.put("state", StringUtils.isNotBlank(consentInput.getState()) ? consentInput.getState().toUpperCase() : null);
+                            variables.put("age", age);
+                            variables.put("relation", StringUtils.isNotBlank(relation) ? relation : ConsentRelationEnum.AUTH_REPRESENTATIVE.getRelation());
+                            variables.put("hasNopConsent", hasNopConsent);
+                            variables.put("hasNJIISConsent", hasNjiisConsent);
+                            variables.put("isHidden", isHidden);
+                            variables.put("isGroupAppointment", isGroupAppointment);
+
+                            String flow = consentInput.getFlow().toUpperCase();
+                            List<ConsentConfig> consentConfigList = new ArrayList<>(getConsentConfigLoader.getConsentDataMap().get(flow));
+
+                            ConsentConfig consents = consentConfigList.stream().filter(consentConfig -> {
+                                boolean isLobMatch = consentConfig.getLob().equalsIgnoreCase(lob);
+                                boolean isModalityMatch = consentConfig.getModality().equalsIgnoreCase(modality);
+                                boolean isBrandMatch = consentConfig.getBrand().equalsIgnoreCase(brand);
+                                return isLobMatch && isModalityMatch && isBrandMatch;
+                            }).findFirst().orElse(null);
+
+                            if (consentConfigList.isEmpty()) {
+                                eventMap.put("methodName", "getSchedulingConsents");
+                                eventMap.put(STATUS_CDE, BAD_REQUEST);
+                                eventMap.put(STATUS_MESSAGE, errorMessages.get("getSchedulingConsents.NO_CONSENT_CONFIG"));
+                                eventMap.put(STATUS_DESC, "No consent configuration found for the provided flow, lob, modality and brand");
+                                loggingUtils.errorEventLogging(logger, eventMap);
+                                return Mono.error(new CvsException(HttpStatus.BAD_REQUEST.value(),
+                                        "NO_CONSENT_CONFIG", errorMessages.get("getSchedulingConsents.NO_CONSENT_CONFIG"),
+                                        "No consent configuration found for the provided flow, lob, modality and brand", "NO_CONSENT_CONFIG"));
+                            }
+
+                            List<ConsentConfig.Consent> filteredConsents = consents.getConsents().stream()
+                                    .map(ConsentConfig.Consent::new)
+                                    .filter(consentData -> StringUtils.isNotBlank(consentData.getConsentContext())
+                                            && consentDataInput.getConsentContext().stream()
+                                            .anyMatch(context -> context.equalsIgnoreCase(consentData.getConsentContext())))
+                                    .map(consentData -> consentServiceHelper.filterConsents(consentData, variables))
+                                    .peek(consentData -> {
+                                        if (consentData != null && consentData.getConsentContext().equalsIgnoreCase(ConsentContextEnum.REVIEW.name()) && !isGroupAppointment) {
+                                            consentData.setSubText(null);
+                                        }
+                                    })
+                                    .filter(filteredConsent -> filteredConsent != null
+                                            && filteredConsent.getConsent() != null
+                                            && !CollectionUtils.isEmpty(filteredConsent.getConsent().getConsents()))
+                                    .toList();
+
+                            return Mono.just(getConsentMapper.toGetConsent((ConsentConfig.builder().consents(filteredConsents).build()), consentDataInput.getPatientReferenceId()));
+                        });
+                    }).collectList()
+                    .flatMap(consentData -> {
+                        if (featureProperties.getLive().containsKey("mcGroupScheduling") && Boolean.TRUE.equals(featureProperties.getLive().get("mcGroupScheduling"))) {
+                            return Mono.just(consentServiceHelper.summarizeConsentsForGroup(consentData, consentInput));
+                        } else {
+                            // If feature is enabled, return the consent data as is
+                            return Mono.just(consentData);
+                        }
+                    })
+                    .flatMap(consentData -> {
+                        GetConsent getConsent = GetConsent.builder()
+                                .statusCode(SUCCESS_MSG)
+                                .statusDescription(SUCCESS_MSG)
+                                .consentsData(consentData)
+                                .build();
+                        return Mono.just(getConsent);
+                    } );
+
+        }
+        else {
+            eventMap.put("methodName", "getSchedulingConsents");
+            eventMap.put(STATUS_CDE, BAD_REQUEST);
+            eventMap.put(STATUS_MESSAGE, errorMessages.get("getSchedulingConsents.INVALID_FLOW"));
+            eventMap.put(STATUS_DESC, "Invalid flow provided in request");
+            loggingUtils.errorEventLogging(logger, eventMap);
+            return Mono.error(new CvsException(HttpStatus.BAD_REQUEST.value(),
+                    "INVALID_FLOW", errorMessages.get("getSchedulingConsents.INVALID_FLOW"),
+                    "Invalid flow provided in request","INVALID_FLOW"));
+        }
+
+    }
 public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeContext(QuestionnaireUIRequest.ScheduleQuestionnaireInput questionnaireInput,
                                                                                        QuestionnaireUIRequest.QuestionnaireDataInput dataInput,
                                                                                        QuestionnaireContextEnum context,
