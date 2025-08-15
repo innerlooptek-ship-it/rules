@@ -45,6 +45,15 @@ service:
     redisFlag: false
     cacheType: genericcache_1h_noextend
 
+  redis-fallback:
+    enabled: true
+    cache-ttl-hours: 24
+    cache-refresh-interval-minutes: 60
+    health-check-interval-seconds: 30
+    write-queue-max-size: 1000
+    cache-warming-enabled: true
+    cache-key-prefix: "fallback:"
+
 
 # Spring Configuration
 spring:
