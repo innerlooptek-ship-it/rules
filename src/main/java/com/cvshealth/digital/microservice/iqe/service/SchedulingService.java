@@ -288,47 +288,80 @@ public class SchedulingService implements  ISchedulingService{
         return age < minorAge;
     }
 
-    private static Set<String> findCommonLastElements(List<QuestionnaireUIResponse.QuestionnaireData> patientDataList) {
+    private Mono<Set<String>> findCommonLastElementsReactive(List<QuestionnaireUIResponse.QuestionnaireData> patientDataList) {
         if (patientDataList == null || patientDataList.isEmpty()) {
-            return new HashSet<>();
+            return Mono.just(new HashSet<>());
         }
         
-        Set<String> lastElementCandidates = null;
-        
-        for (QuestionnaireUIResponse.QuestionnaireData data : patientDataList) {
-            if (data.getQuestions() != null && !data.getQuestions().isEmpty()) {
-                List<QuestionnaireUIResponse.Question> questions = data.getQuestions();
-                String lastQuestionId = questions.get(questions.size() - 1).getId();
-                
-                if (lastElementCandidates == null) {
-                    lastElementCandidates = new HashSet<>();
-                    lastElementCandidates.add(lastQuestionId);
-                } else {
-                    lastElementCandidates.retainAll(Set.of(lastQuestionId));
-                }
-            }
-        }
-        
-        Set<String> positionalLastElements = lastElementCandidates != null ? lastElementCandidates : new HashSet<>();
-        
-        if (positionalLastElements.isEmpty()) {
-            Set<String> textPatternElements = new HashSet<>();
-            
-            for (QuestionnaireUIResponse.QuestionnaireData data : patientDataList) {
-                if (data.getQuestions() != null) {
-                    for (QuestionnaireUIResponse.Question question : data.getQuestions()) {
-                        if (question.getText() != null && 
-                            question.getText().toLowerCase().contains("none of the statements apply")) {
-                            textPatternElements.add(question.getId());
-                        }
+        return Flux.fromIterable(patientDataList)
+                .filter(data -> data.getQuestions() != null && !data.getQuestions().isEmpty())
+                .map(data -> data.getQuestions().get(data.getQuestions().size() - 1).getId())
+                .reduce(new HashSet<String>(), (acc, lastQuestionId) -> {
+                    if (acc.isEmpty()) {
+                        acc.add(lastQuestionId);
+                    } else {
+                        acc.retainAll(Set.of(lastQuestionId));
                     }
-                }
-            }
-            
-            return textPatternElements;
+                    return acc;
+                })
+                .flatMap(positionalLastElements -> {
+                    if (positionalLastElements.isEmpty()) {
+                        return Flux.fromIterable(patientDataList)
+                                .filter(data -> data.getQuestions() != null)
+                                .flatMap(data -> Flux.fromIterable(data.getQuestions()))
+                                .filter(question -> question.getText() != null && 
+                                        question.getText().toLowerCase().contains("none of the statements apply"))
+                                .map(QuestionnaireUIResponse.Question::getId)
+                                .collect(Collectors.toSet());
+                    } else {
+                        return Mono.just(positionalLastElements);
+                    }
+                });
+    }
+
+    private Mono<QuestionnaireUIResponse.QuestionnaireData> mergeAndSortQuestionsReactive(
+            List<QuestionnaireUIResponse.QuestionnaireData> patientDataList, 
+            Set<String> commonLastElements) {
+        
+        if (patientDataList.isEmpty()) {
+            return Mono.just(new QuestionnaireUIResponse.QuestionnaireData());
         }
         
-        return positionalLastElements;
+        return Flux.fromIterable(patientDataList)
+                .flatMap(data -> Flux.fromIterable(data.getQuestions()))
+                .collect(LinkedHashMap<String, QuestionnaireUIResponse.Question>::new, 
+                        (map, question) -> {
+                            if (!map.containsKey(question.getId()) || 
+                                (map.containsKey(question.getId()) && 
+                                 map.get(question.getId()).getSequenceId() > question.getSequenceId())) {
+                                map.put(question.getId(), question);
+                            }
+                        })
+                .flatMap(mergedMap -> {
+                    return Flux.fromIterable(mergedMap.values())
+                            .groupBy(question -> commonLastElements.contains(question.getId()))
+                            .flatMap(group -> {
+                                if (group.key()) {
+                                    return group.sort(Comparator.comparingInt(QuestionnaireUIResponse.Question::getSequenceId))
+                                            .collectList()
+                                            .map(list -> Map.entry("lastElements", list));
+                                } else {
+                                    return group.sort(Comparator.comparingInt(QuestionnaireUIResponse.Question::getSequenceId))
+                                            .collectList()
+                                            .map(list -> Map.entry("regular", list));
+                                }
+                            })
+                            .collectMap(Map.Entry::getKey, Map.Entry::getValue)
+                            .map(groupedQuestions -> {
+                                List<QuestionnaireUIResponse.Question> finalQuestions = new ArrayList<>();
+                                finalQuestions.addAll(groupedQuestions.getOrDefault("regular", new ArrayList<>()));
+                                finalQuestions.addAll(groupedQuestions.getOrDefault("lastElements", new ArrayList<>()));
+                                
+                                QuestionnaireUIResponse.QuestionnaireData mergedData = patientDataList.get(0);
+                                mergedData.setQuestions(finalQuestions);
+                                return mergedData;
+                            });
+                });
     }
 
 public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeContext(QuestionnaireUIRequest.ScheduleQuestionnaireInput questionnaireInput,
@@ -382,65 +415,31 @@ public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeC
                     }
             )
             .collectList()
-            .map(questionnaireDataList -> {
+            .flatMap(questionnaireDataList -> {
                 QuestionnaireUIResponse.GetQuestionnaire getQuestionnaire = new QuestionnaireUIResponse.GetQuestionnaire();
-                List<QuestionnaireUIResponse.QuestionnaireData> filteredList = questionnaireDataList.stream()
+                
+                return Flux.fromIterable(questionnaireDataList)
                         .filter(data -> data != null && data.getQuestions() != null && !data.getQuestions().isEmpty())
                         .collect(Collectors.groupingBy(QuestionnaireUIResponse.QuestionnaireData::getPatientReferenceId))
-                        .values().stream()
-                        .map(patientDataList -> {
-                            Map<String, QuestionnaireUIResponse.Question> mergedMap = new LinkedHashMap<>();
-                            List<QuestionnaireUIResponse.Question> combinedQuestions = new ArrayList<>();
-                            for (QuestionnaireUIResponse.QuestionnaireData questionnaireData : patientDataList) {
-                                combinedQuestions.addAll(questionnaireData.getQuestions());
-                            }
-                            
-                            Set<String> commonLastElements = findCommonLastElements(patientDataList);
-                            
-                            QuestionnaireUIResponse.QuestionnaireData mergedData = new QuestionnaireUIResponse.QuestionnaireData();
-                            if(!patientDataList.isEmpty()) {
-                                for (QuestionnaireUIResponse.Question question : combinedQuestions) {
-                                    if (!mergedMap.containsKey(question.getId()) || (mergedMap.containsKey(question.getId()) && mergedMap.get(question.getId()).getSequenceId() > question.getSequenceId())) {
-                                        mergedMap.put(question.getId(), question);
-                                    }
-                                }
-
-                                List<QuestionnaireUIResponse.Question> mergedQuestions = new ArrayList<>(mergedMap.values());
-                                
-                                List<QuestionnaireUIResponse.Question> regularQuestions = new ArrayList<>();
-                                List<QuestionnaireUIResponse.Question> lastElementQuestions = new ArrayList<>();
-                                
-                                for (QuestionnaireUIResponse.Question question : mergedQuestions) {
-                                    if (commonLastElements.contains(question.getId())) {
-                                        lastElementQuestions.add(question);
-                                    } else {
-                                        regularQuestions.add(question);
-                                    }
-                                }
-                                
-                                regularQuestions.sort(Comparator.comparingInt(QuestionnaireUIResponse.Question::getSequenceId));
-                                lastElementQuestions.sort(Comparator.comparingInt(QuestionnaireUIResponse.Question::getSequenceId));
-                                
-                                List<QuestionnaireUIResponse.Question> finalQuestions = new ArrayList<>();
-                                finalQuestions.addAll(regularQuestions);
-                                finalQuestions.addAll(lastElementQuestions);
-                                
-                                mergedData = patientDataList.get(0);
-                                mergedData.setQuestions(finalQuestions);
-                            }
-                            return mergedData;
+                        .flatMapMany(groupedData -> Flux.fromIterable(groupedData.values()))
+                        .flatMap(patientDataList -> {
+                            return findCommonLastElementsReactive(patientDataList)
+                                    .flatMap(commonLastElements -> 
+                                        mergeAndSortQuestionsReactive(patientDataList, commonLastElements)
+                                    );
                         })
-                        .toList();
-
-                getQuestionnaire.setQuestionnaireData(filteredList);
-                if (getQuestionnaire.getQuestionnaireData() == null || getQuestionnaire.getQuestionnaireData().isEmpty()) {
-                    getQuestionnaire.setStatusDescription("No questions found");
-                } else {
-                    getQuestionnaire.setStatusDescription("SUCCESS");
-                }
-                getQuestionnaire.setStatusCode("SUCCESS");
-                getQuestionnaire.setFlow(questionnaireInput.getFlow() != null ? questionnaireInput.getFlow() : "");
-                return getQuestionnaire;
+                        .collectList()
+                        .map(filteredList -> {
+                            getQuestionnaire.setQuestionnaireData(filteredList);
+                            if (getQuestionnaire.getQuestionnaireData() == null || getQuestionnaire.getQuestionnaireData().isEmpty()) {
+                                getQuestionnaire.setStatusDescription("No questions found");
+                            } else {
+                                getQuestionnaire.setStatusDescription("SUCCESS");
+                            }
+                            getQuestionnaire.setStatusCode("SUCCESS");
+                            getQuestionnaire.setFlow(questionnaireInput.getFlow() != null ? questionnaireInput.getFlow() : "");
+                            return getQuestionnaire;
+                        });
             })
             .onErrorResume(Mono::error);
 }
