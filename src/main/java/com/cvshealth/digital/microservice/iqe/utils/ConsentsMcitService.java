@@ -1,15 +1,12 @@
-package com.cvshealth.digital.microservice.iqe.service;
+package com.cvshealth.digital.microservice.iqe.utils;
 
-import com.cvshealth.digital.microservice.common.constants.SchedulingConstants;
-import com.cvshealth.digital.microservice.common.enums.ErrorKey;
-import com.cvshealth.digital.microservice.common.helper.WebClientHelper;
-import com.cvshealth.digital.microservice.constants.DhsCoreConstants;
-import com.cvshealth.digital.microservice.enums.LobTypeIdEnum;
-import com.cvshealth.digital.microservice.model.mcit.getPatientConsents.MCITGetPatientConsentsRequest;
-import com.cvshealth.digital.microservice.model.mcit.getPatientConsents.MCITGetPatientConsentsResponse;
-import com.cvshealth.digital.microservice.scheduling.constants.DHSSchedulingServiceConstants;
-
-import com.cvshealth.digital.microservice.util.CommonDateUtil;
+import com.cvshealth.digital.microservice.iqe.config.WebClientHelper;
+import com.cvshealth.digital.microservice.iqe.constants.DhsCoreConstants;
+import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.dto.LobTypeIdEnum;
+import com.cvshealth.digital.microservice.iqe.dto.MCITGetPatientConsentsRequest;
+import com.cvshealth.digital.microservice.iqe.dto.MCITGetPatientConsentsResponse;
+import com.cvshealth.digital.microservice.iqe.enums.ErrorKey;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,19 +18,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.cvshealth.digital.microservice.common.constants.SchedulingConstants.CONST_X_GRID;
-import static com.cvshealth.digital.microservice.util.CvsLoggingUtil.logErrorEvent;
-import static com.cvshealth.digital.microservice.util.CvsLoggingUtil.populateEventMap;
+import static com.cvshealth.digital.microservice.iqe.constants.DhsCoreConstants.CONST_X_GRID;
+import static com.cvshealth.digital.microservice.iqe.utils.CvsLoggingUtil.logErrorEvent;
+import static com.cvshealth.digital.microservice.iqe.utils.LoggingUtils.populateEventMap;
+
 
 @Service
-public class MCITGetPatientConsentsService {
+public class ConsentsMcitService {
 
     private final WebClient mcitGetPatientConsentsWebClient;
 
     private final WebClientHelper webClientHelper;
 
     @Autowired
-    public MCITGetPatientConsentsService(
+    public ConsentsMcitService(
             WebClientHelper webClientHelper,
             @Qualifier("mcitGetPatientConsents") WebClient mcitGetPatientConsentsWebClient
     ) {
@@ -92,8 +90,8 @@ public class MCITGetPatientConsentsService {
 
                     long endTime = System.currentTimeMillis();
                     long elapsedTime = endTime - startTime;
-                    tags.put(DHSSchedulingServiceConstants.MC_GET_APPOINTMENTS_RESP_TIME, elapsedTime);
-                    tags.put("mcitGetPatientConsents_" + DHSSchedulingServiceConstants.RESP_TIME, elapsedTime);
+                    tags.put(SchedulingConstants.MC_GET_APPOINTMENTS_RESP_TIME, elapsedTime);
+                    tags.put("mcitGetPatientConsents_" + SchedulingConstants.RESP_TIME, elapsedTime);
                     if(e.getResponse() != null && e.getResponse().getStatusRec() != null && e.getResponse().getStatusRec().getStatusCode() != 0) {
                         eventMap.put(SchedulingConstants.STATUS_CDE, String.valueOf(e.getResponse().getStatusRec().getStatusCode()));
                         eventMap.put(SchedulingConstants.STATUS_MESSAGE, e.getResponse().getStatusRec().getStatusDesc());
@@ -109,10 +107,10 @@ public class MCITGetPatientConsentsService {
                     long endTime = System.currentTimeMillis();
                     long elapsedTime = endTime - startTime;
                     tags.put("mcitGetPatientConsentsFailed", Boolean.TRUE.toString());
-                    eventMap.put(DHSSchedulingServiceConstants.MC_GET_APPOINTMENTS_RESP_TIME, elapsedTime);
-                    eventMap.put(DHSSchedulingServiceConstants.RESP_TIME, elapsedTime);
+                    eventMap.put(SchedulingConstants.MC_GET_APPOINTMENTS_RESP_TIME, elapsedTime);
+                    eventMap.put(SchedulingConstants.RESP_TIME, elapsedTime);
                     eventMap.put(SchedulingConstants.STATUS_MESSAGE, throwable.getMessage());
-                    eventMap.put(SchedulingConstants.STATUS_CDE, DHSSchedulingServiceConstants.FAILURE_CD);
+                    eventMap.put(SchedulingConstants.STATUS_CDE, SchedulingConstants.FAILURE_CD);
 
                     logErrorEvent(eventMap, startTime);
 

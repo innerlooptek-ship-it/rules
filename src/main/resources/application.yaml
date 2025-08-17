@@ -248,7 +248,8 @@ custom:
   logHttpHeaders: GRID,user-agent,referer
   QuestionnaireContexts:
     mciqe: questionaire/mc_iqe_questions.json
-
+  consentsConfig:
+    VACCINE: "src/main/resources/consents/consents_vaccine.json"
 shortid:
   length: 6
 

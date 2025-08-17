@@ -1,38 +1,33 @@
 package com.cvshealth.digital.microservice.iqe.service;
 
 import com.cvshealth.digital.microservice.iqe.QuestionnaireContextEnum;
-import com.cvshealth.digital.microservice.iqe.config.MessageConfig;
-import com.cvshealth.digital.microservice.iqe.config.StateMinorAgeConfig;
-import com.cvshealth.digital.microservice.iqe.dto.IQEMcCoreQuestionnarieRequest;
-import com.cvshealth.digital.microservice.iqe.dto.ImzQuestionnarieResponse;
-import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIRequest;
-import com.cvshealth.digital.microservice.iqe.dto.QuestionnaireUIResponse;
+import com.cvshealth.digital.microservice.iqe.config.*;
+import com.cvshealth.digital.microservice.iqe.dto.*;
+import com.cvshealth.digital.microservice.iqe.enums.*;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
 import com.cvshealth.digital.microservice.iqe.mapper.DetailMapper;
 import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.mapper.GetConsentMapper;
 import com.cvshealth.digital.microservice.iqe.model.GetConsent;
 import com.cvshealth.digital.microservice.iqe.model.GetConsentInput;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.cvshealth.digital.microservice.iqe.utils.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.EVC_B2B;
-import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.MC_CORE;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.drools.core.management.DroolsManagementAgent.logger;
@@ -48,6 +43,7 @@ public class SchedulingService implements  ISchedulingService{
     private final MessageConfig getMessages;
    private final ValidatorSchedulingService validatorSchedulingService;
     private final IQEMcCoreQuestionnarieService iqeMcCoreQuestionnarieService;
+    private final LoggingUtils loggingUtils;
     private List<QuestionnaireUIResponse.QuestionnaireData> mcCoreJson;
     private List<QuestionnaireUIResponse.QuestionnaireData> mhcLegalJson;
     private List<QuestionnaireUIResponse.QuestionnaireData> mcCoreJsonLegal;
@@ -58,27 +54,14 @@ public class SchedulingService implements  ISchedulingService{
     private final ResourceLoader resourceLoader;
     private final DetailMapper detailMapper;
     private final StateMinorAgeConfig stateMinorAgeConfig;
-//    @PostConstruct
-//    private void postConstruct() throws IOException {
-//        errorMessages = getMessages.getMessages();
-//
-//        final String MHC_LEGAL_JSON = "classpath:questionnaire/mhc/mhc_legal.json";
-//        final String MCCORE_LEGAL_JSON = "classpath:questionnaire/mccore/mc_legal.json";
-//        final String MCCORE_WOUND_JSON = "classpath:questionnaire/mccore/mccore-wound.json";
-//        final String MCCORE_SCHEDULING_JSON = "classpath:questionnaire/mccore/mc_scheduling.json";
-//        final String MHC_PSYCHIATRY_SCHEDULING_JSON = "classpath:questionnaire/mhc/mhc_psychiatry_scheduling.json";
-//
-//        mhcLegalJson = loadJson(MHC_LEGAL_JSON, new TypeReference<>() {});
-//        mcCoreJson = loadJson(MCCORE_WOUND_JSON, new TypeReference<>() {});
-//        mcCoreJsonLegal = loadJson(MCCORE_LEGAL_JSON, new TypeReference<>() {});
-//        mcCoreJsonScheduling = loadJson(MCCORE_SCHEDULING_JSON, new TypeReference<>() {});
-//        mhcPsychiatryJsonScheduling = loadJson(MHC_PSYCHIATRY_SCHEDULING_JSON, new TypeReference<>() {});
-//    }
-//    private <T> T loadJson(String resourcePath, TypeReference<T> typeReference) throws IOException {
-//        Resource resource = resourceLoader.getResource(resourcePath);
-//
-//        return objectMapper.readValue(resource.getContentAsString(StandardCharsets.UTF_8), typeReference);
-//    }
+    ConsentsMcitService mcitGetPatientConsentsService;
+    GetConsentConfigLoader getConsentConfigLoader;
+    GetConsentMapper getConsentMapper;
+    ConsentServiceHelper consentServiceHelper;
+    FeatureProperties featureProperties;
+    DHSSchedulingConfigs dhsSchedulingConfigs;
+
+
     public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaire(QuestionnaireUIRequest.ScheduleQuestionnaireInput questionnaireInput,
                                                                               QuestionnaireContextEnum context,
                                                                               Map<String, String> headerMap, Map<String, Object> eventMap) throws CvsException, IOException {
@@ -298,7 +281,7 @@ public class SchedulingService implements  ISchedulingService{
         if (patientDataList == null || patientDataList.isEmpty()) {
             return Mono.just(new HashSet<>());
         }
-        
+
         return Flux.fromIterable(patientDataList)
                 .filter(data -> data.getQuestions() != null && !data.getQuestions().isEmpty())
                 .map(data -> data.getQuestions().get(data.getQuestions().size() - 1).getId())
@@ -315,7 +298,7 @@ public class SchedulingService implements  ISchedulingService{
                         return Flux.fromIterable(patientDataList)
                                 .filter(data -> data.getQuestions() != null)
                                 .flatMap(data -> Flux.fromIterable(data.getQuestions()))
-                                .filter(question -> question.getText() != null && 
+                                .filter(question -> question.getText() != null &&
                                         question.getText().toLowerCase().contains("none of the statements apply"))
                                 .map(QuestionnaireUIResponse.Question::getId)
                                 .collect(Collectors.toSet());
@@ -326,19 +309,19 @@ public class SchedulingService implements  ISchedulingService{
     }
 
     private Mono<QuestionnaireUIResponse.QuestionnaireData> mergeAndSortQuestionsReactive(
-            List<QuestionnaireUIResponse.QuestionnaireData> patientDataList, 
+            List<QuestionnaireUIResponse.QuestionnaireData> patientDataList,
             Set<String> commonLastElements) {
-        
+
         if (patientDataList.isEmpty()) {
             return Mono.just(new QuestionnaireUIResponse.QuestionnaireData());
         }
-        
+
         return Flux.fromIterable(patientDataList)
                 .flatMap(data -> Flux.fromIterable(data.getQuestions()))
-                .collect(LinkedHashMap<String, QuestionnaireUIResponse.Question>::new, 
+                .collect(LinkedHashMap<String, QuestionnaireUIResponse.Question>::new,
                         (map, question) -> {
-                            if (!map.containsKey(question.getId()) || 
-                                (map.containsKey(question.getId()) && 
+                            if (!map.containsKey(question.getId()) ||
+                                (map.containsKey(question.getId()) &&
                                  map.get(question.getId()).getSequenceId() > question.getSequenceId())) {
                                 map.put(question.getId(), question);
                             }
@@ -362,7 +345,7 @@ public class SchedulingService implements  ISchedulingService{
                                 List<QuestionnaireUIResponse.Question> finalQuestions = new ArrayList<>();
                                 finalQuestions.addAll(groupedQuestions.getOrDefault("regular", new ArrayList<>()));
                                 finalQuestions.addAll(groupedQuestions.getOrDefault("lastElements", new ArrayList<>()));
-                                
+
                                 QuestionnaireUIResponse.QuestionnaireData mergedData = patientDataList.get(0);
                                 mergedData.setQuestions(finalQuestions);
                                 return mergedData;
@@ -370,10 +353,9 @@ public class SchedulingService implements  ISchedulingService{
                 });
     }
 
-    public void validateString(String value, String statusCode, ErrorKey errorKey, Map<String, Object> tags) throws CvsException {
-        if (StringUtils.isEmpty(value)) throwValidationException(statusCode, errorKey, tags);
-    }
-    @Override
+//    public void validateString(String value, String statusCode, ErrorKey errorKey, Map<String, Object> tags) throws CvsException {
+//        if (StringUtils.isEmpty(value)) throwValidationException(statusCode, errorKey, tags);
+//    }
     public Mono<GetConsent> getSchedulingConsents(String id, String idType, GetConsentInput consentInput, Map<String, Object> tags, Map<String, String> headerMap) throws CvsException {
         logger.debug("Entering getSchedulingConsents method of SchedulingService....");
 
@@ -383,14 +365,14 @@ public class SchedulingService implements  ISchedulingService{
        // validationUtils.validateString(consentInput.getFlow(), "MISSING_FLOW", ErrorKey.GET_CONSENTS, eventMap);
 
         // VM domain service
-        if(consentInput.getFlow().equalsIgnoreCase("VM")) {
-            validatorSchedulingService.validateGetConsent(consentInput, eventMap);
-            return vmService.getVMConsents(id,idType,consentInput,tags,headerMap).flatMap(vmGetConsentsResponse -> {
-                GetConsent getConsent = GetConsent.builder().consentsData(vmGetConsentsResponse.getConsentsData()).build();
-                return Mono.just(getConsent);
-            });
-        }
-        else if(consentInput.getFlow().equalsIgnoreCase("VACCINE")) {
+//        if(consentInput.getFlow().equalsIgnoreCase("VM")) {
+//            validatorSchedulingService.validateGetConsent(consentInput, eventMap);
+//            return vmService.getVMConsents(id,idType,consentInput,tags,headerMap).flatMap(vmGetConsentsResponse -> {
+//                GetConsent getConsent = GetConsent.builder().consentsData(vmGetConsentsResponse.getConsentsData()).build();
+//                return Mono.just(getConsent);
+//            });
+//        }
+         if(consentInput.getFlow().equalsIgnoreCase("VACCINE")) {
 
 //            if (featureProperties.getLive().containsKey("enableSchedulingConsents") && Boolean.FALSE.equals(featureProperties.getLive().get("enableSchedulingConsents"))) {
 //                throw new CvsException(HttpStatus.BAD_REQUEST.value(), "FEATURE_NOT_ENABLED", messagesConfig.getMessages().get("consent.FEATURE_NOT_ENABLED"),
@@ -566,14 +548,14 @@ public Mono<QuestionnaireUIResponse.GetQuestionnaire> getIQEQuestionnaireIntakeC
             .collectList()
             .flatMap(questionnaireDataList -> {
                 QuestionnaireUIResponse.GetQuestionnaire getQuestionnaire = new QuestionnaireUIResponse.GetQuestionnaire();
-                
+
                 return Flux.fromIterable(questionnaireDataList)
                         .filter(data -> data != null && data.getQuestions() != null && !data.getQuestions().isEmpty())
                         .collect(Collectors.groupingBy(QuestionnaireUIResponse.QuestionnaireData::getPatientReferenceId))
                         .flatMapMany(groupedData -> Flux.fromIterable(groupedData.values()))
                         .flatMap(patientDataList -> {
                             return findCommonLastElementsReactive(patientDataList)
-                                    .flatMap(commonLastElements -> 
+                                    .flatMap(commonLastElements ->
                                         mergeAndSortQuestionsReactive(patientDataList, commonLastElements)
                                     );
                         })

@@ -373,4 +373,5 @@ public interface SchedulingConstants {
 	public static final String IQE_RESP_TIME = "IQE_RESP_TIME";
 	public static final String VACCINE = "VACCINE";
 	public static final String MHC = "MHC";
+    String MC_GET_APPOINTMENTS_RESP_TIME = "MC_GET_APPOINTMENTS_RESP_TIME";
 }

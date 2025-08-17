@@ -14,13 +14,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Component
@@ -130,8 +133,25 @@ public class SchedulingUtils implements SchedulingConstants{
 	public byte[] base64Decode(String s) {
 		return s != null ? Base64.getDecoder().decode(s) : null;
 	}
-	
 
+    public static <T extends Enum<T>> boolean enumContains(Class<T> enumClass, List<String> values) {
+        return values
+                .stream()
+                .allMatch(value ->
+                        stream(enumClass.getEnumConstants()).anyMatch(enumValue -> enumValue.name().equalsIgnoreCase(value)));
+    }
+    public static void addTags (Map<String, Object> tags, String statusCode, String statusMessage, String statusDescription, HttpStatus httpStatusCode) {
+        tags.put(STATUS_CDE, statusCode);
+        tags.put(STATUS_MESSAGE, statusMessage);
+        tags.put(STATUS_DESC, statusDescription);
+        tags.put(HTTP_STATUS_CDE, httpStatusCode.value());
+    }
+    public static <T extends Enum<T>> boolean enumContainsByMappedValue(Class<T> enumClass, List<String> values) {
+        return values
+                .stream()
+                .allMatch(value ->
+                        stream(enumClass.getEnumConstants()).anyMatch(enumValue -> enumValue.toString().equalsIgnoreCase(value)));
+    }
 	
 	public String getHeaderValue(String headerName, Map<String,String> headerMap) {
 		Optional<String> optional = getHeaderValueFromMap(headerName,headerMap);
