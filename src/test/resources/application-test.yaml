@@ -1,0 +1,48 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.cassandra.CassandraRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.GraphQlWebMvcAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.GraphQlWebFluxAutoConfiguration
+
+  main:
+    allow-bean-definition-overriding: true
+
+logging:
+  level:
+    com.cvshealth.digital.microservice.iqe: DEBUG
+    
+custom:
+  scheduleEncryptDecryptKey: "dGVzdC1lbmNyeXB0aW9uLWtleS0xMjM0NTY3ODkwMTIzNDU2"
+
+api:
+  configs:
+    iqe:
+      getIQEMcCoreQuestionnarie:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/questionnaire"
+        readTimeout: 5000
+        connectionTimeout: 3000
+      dynamicFlowConditionEvaluation:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/dynamic-flow"
+        readTimeout: 5000
+        connectionTimeout: 3000
+    consents:
+      getPatientConsents:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/consents"
+        readTimeout: 5000
+        connectionTimeout: 3000
+        userName: "test-user"
+        password: "test-password"
+    appointment:
+      getAppointment:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/appointment"
+        readTimeout: 5000
+        connectionTimeout: 3000
