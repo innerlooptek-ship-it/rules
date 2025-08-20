@@ -1,0 +1,185 @@
+# --------------------
+# Spring Boot Framework / Service Configuration
+# Prefix: service.*
+# --------------------
+service:
+  context-path: /schedule/iqe
+  #  encrypt:
+  #    method: JASYPT
+  #    jasypt:
+  #      key: ${JASYPT_KEY}
+  logging:
+    #   Supported mode: CVSEVENT, LOGAPP
+    level:
+      root: INFO
+      com:
+        cvshealth:
+          digital: INFO
+    pattern:
+      console: "%msg%n"
+    #   Supported destinations: CONSOLE, HTTP
+    #   For HTTP, set log-app.url
+    #   List of events to ignore while logging. Valid: ENTRY, EXIT, INFO, EXIT
+    ignore-events:
+      - ENTRY
+    excluded-endpoints:
+      - "/actuator*/**"
+      - "/swagger*/**"
+      - "/v3/api*/**"
+      - "/metrics/**"
+      - "/scheduling/iqe/actuator*/**"
+      - "/scheduling/iqe/swagger*/**"
+      - "/scheduling/iqe/health*/**"
+
+
+# Spring Configuration
+spring:
+  application:
+    name: dhs-scheduling-iqe-service
+    version: v1
+  mvc:
+    throw-exception-if-no-handler-found: true
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  data:
+    cassandra:
+      # session-name: cvs-planogram-svc
+      #mfedev, mfeqa
+      session-leak:
+        threshold: 2
+      connection:
+        max-requests-per-connection: 1024
+        pool:
+          local:
+            size: 2
+          remote:
+            size: 1
+        set-keyspace-timeout: 25000
+        max-orphan-requests: 256
+  cassandra:
+    contact-points: localhost
+    port: 9142
+    keyspace-name: schedule
+    local-datacenter: datacenter1
+    username: test
+    password: test
+    request:
+      consistency: LOCAL_QUORUM
+      timeout: 25000
+    connection:
+      init-query-timeout: 25000
+      connect-timeout: 25000
+
+
+
+  web:
+    resources:
+      add-mappings: false
+
+# Logging
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    com.cvshealth.digital.microservice.dhsschedulingiqeservice: INFO
+    com:
+      cvshealth:
+        digital: INFO
+  pattern:
+    console: "%msg%n"
+
+# Open Tracing
+opentracing:
+  jaeger:
+    enabled: true
+    probabilistic-sampler:
+      sampling-rate: 0.1 # Recommended 1.0 for Non-prod and 0.1 for Prod & PT
+    log-spans: true
+    http-sender:
+      url: http://jaeger-collector.istio-system.svc:14268/api/traces
+
+# Api Documentation
+springdoc:
+  api-docs:
+    enabled: true
+    path: /scheduling/iqe/v3/api-docs
+  swagger-ui:
+    path: /scheduling/iqe/swagger-ui.html
+    config-url: /scheduling/iqe/v3/api-docs/swagger-config
+    url: /scheduling/iqe/v3/api-docs
+    disable-swagger-default-url: true
+  paths-to-exclude: /swagger-resources/**, /v2/api-docs
+
+springfox:
+  documentation:
+    auto-startup: false
+
+# Server Configuration
+server:
+  port: 21140
+  max-http-request-header-size: 10MB
+
+# Liveness Probe Config
+livenessProbe:
+  httpGet:
+    path: /scheduling/iqe/actuator/health/liveness
+    port: 21140
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+
+# Readiness Probe Config
+readinessProbe:
+  httpGet:
+    path: /scheduling/iqe/actuator/health/readiness
+    port: 21140
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+management:
+  health:
+    probes:
+      enabled: true
+    circuitbreakers:
+      enabled: false
+  endpoints:
+    web:
+      base-path: /scheduling/iqe/actuator
+      exposure:
+        include: prometheus,health
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: dhs-scheduling-iqe-service
+
+
+
+#app related data
+app:
+  name: dhs-scheduling-iqe-service
+#  type: "java"
+#  enableOpenTelemetry: "true"
+
+
+
+custom:
+  env: UAT3
+  referer: https://www.cvs.com
+  logHttpHeaders: GRID,user-agent,referer
+  QuestionnaireContexts:
+    mciqe: questionaire/mc_iqe_questions.json
+
+shortid:
+  length: 6
+
+api:
+  configs:
+    appointment:
+      getAppointment:
+        baseUrl: http://localhost:21139
+        uri: /schedule/core/v1/appointmentdata
+        readTimeout: 1000
+        connectionTimeout: 1000

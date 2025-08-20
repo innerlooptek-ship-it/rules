@@ -38,6 +38,9 @@ dependencies {
         implementation("net.minidev:json-smart:2.5.2")
         testImplementation("net.minidev:json-smart:2.5.2")
     }
+        compileOnly("org.projectlombok:lombok:1.18.32")
+        annotationProcessor("org.projectlombok:lombok:1.18.32")
+
 
     implementation( "org.json:json:20231013")
     implementation("org.postgresql:postgresql:42.7.2")
