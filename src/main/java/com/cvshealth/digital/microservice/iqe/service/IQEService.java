@@ -61,6 +61,14 @@ public class IQEService implements SchedulingConstants {
      */
     public Mono<com.cvshealth.digital.microservice.iqe.model.Questions> getRuleDetails(RulesDetails rulesDetails, Map<String, String> headers, Map<String, Object> eventMap) {
 
+        if (rulesDetails == null) {
+            return Mono.error(new RuntimeException("RulesDetails cannot be null"));
+        }
+        
+        if (rulesDetails.getFlow() == null) {
+            return Mono.error(new RuntimeException("Flow cannot be null"));
+        }
+
         eventMap.putAll(headers);
         eventMap.put("flow", rulesDetails.getFlow());
 
