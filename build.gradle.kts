@@ -90,6 +90,7 @@ dependencies {
     }
     testImplementation("io.projectreactor:reactor-test:3.6.4")
     testImplementation("org.springframework.graphql:spring-graphql-test:1.4.0")
+    testImplementation("org.springframework.boot:spring-boot-starter-jdbc")
     compileOnly("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")
     testImplementation("org.jbehave:jbehave-core:5.2.0") {
@@ -119,17 +120,58 @@ dependencies {
     implementation("org.modelmapper:modelmapper:2.4.2")
     implementation("org.apache.commons:commons-collections4:4.4")
     implementation("io.netty:netty-handler:4.1.118.Final")
-    implementation("ch.qos.logback:logback-core:1.3.15")
-    implementation("ch.qos.logback:logback-classic:1.3.15")
     implementation("commons-io:commons-io:2.14.0")
     compileOnly("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.jbehave:jbehave-core:5.2.0")
-    testImplementation("org.jbehave:jbehave-spring:5.2.0")
-    testImplementation("org.jbehave:jbehave-gherkin:5.2.0")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+    }
+    testImplementation("org.jbehave:jbehave-core:5.2.0") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
+    testImplementation("org.jbehave:jbehave-spring:5.2.0") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
+    testImplementation("org.jbehave:jbehave-gherkin:5.2.0") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
     testImplementation("org.projectlombok:lombok:1.18.28")
     testImplementation("io.projectreactor:reactor-test:3.6.4")
+    
+    // Testcontainers for integration testing
+    testImplementation("org.testcontainers:testcontainers:1.19.3") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
+    testImplementation("org.testcontainers:junit-jupiter:1.19.3") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
+    testImplementation("org.testcontainers:cassandra:1.19.3") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
+    testImplementation("org.springframework.boot:spring-boot-testcontainers:3.4.7") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
+    
+    // MockWebServer for external API testing
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
+    
+    // WireMock for service mocking
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0") {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
 }
 
 group = "com.cvshealth.digital.microservice.iqe"
@@ -172,7 +214,9 @@ tasks.jacocoTestReport {
             exclude("com/cvshealth/digital/microservice/iqe/config/**",
                 "com/cvshealth/digital/microservice/iqe/constants/**",
                 "com/cvshealth/digital/microservice/iqe/model/**",
-                "com/cvshealth/digital/microservice/iqe/dto/**"
+                "com/cvshealth/digital/microservice/iqe/dto/**",
+                "**/org/drools/**",
+                "**/DRL6Lexer*"
             )
         }
     })
@@ -187,7 +231,9 @@ tasks.jacocoTestCoverageVerification {
             exclude("com/cvshealth/digital/microservice/iqe/config/**",
                 "com/cvshealth/digital/microservice/iqe/constants/**",
                 "com/cvshealth/digital/microservice/iqe/model/**",
-                "com/cvshealth/digital/microservice/iqe/dto/**"
+                "com/cvshealth/digital/microservice/iqe/dto/**",
+                "**/org/drools/**",
+                "**/DRL6Lexer*"
             )
         }
     })
@@ -195,7 +241,18 @@ tasks.jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = "0.01".toBigDecimal()
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+        rule {
+            element = "CLASS"
+            includes = listOf(
+                "com.cvshealth.digital.microservice.iqe.controller.IQEController",
+                "com.cvshealth.digital.microservice.iqe.service.IQEService",
+                "com.cvshealth.digital.microservice.iqe.service.IQERepoOrchestrator"
+            )
+            limit {
+                minimum = "0.90".toBigDecimal()
             }
         }
     }
