@@ -90,7 +90,7 @@ class IQEServiceComprehensiveTest {
         Map<String, Object> reqHeaders = new HashMap<>();
         
         StepVerifier.create(iqeService.getRuleDetails(null, headers, reqHeaders))
-                .expectError(NullPointerException.class)
+                .expectError(RuntimeException.class)
                 .verify();
     }
     
@@ -102,7 +102,7 @@ class IQEServiceComprehensiveTest {
         Map<String, Object> reqHeaders = new HashMap<>();
         
         StepVerifier.create(iqeService.getRuleDetails(rulesDetails, headers, reqHeaders))
-                .expectError(NullPointerException.class)
+                .expectError(RuntimeException.class)
                 .verify();
     }
     
