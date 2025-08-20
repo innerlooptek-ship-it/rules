@@ -29,7 +29,6 @@ type Query {
   getSlotCountByDates(id: String, idType: String, slotCountByDatesInput: SlotCountByDatesInput): GetSlotCountByDatesResponse
   verifyXid(id:String, idType: String, verifyXidInput: VerifyXidInput!): VerifyXid
   getStores(searchText: String, state: String, latitude: String, longitude: String, filterInput: FilterInput!): StoreOutput
-  getSchedulingConsents(id: String, idType: String, consentInput:SchedulingGetConsentInput!,profile:EnrollProfile): GetConsent
   allVisitCodes(id: String, idType: String, allVisitCodesInput: AllVisitCodesInput): AllVisitCodes
   checkEntitlement(id: String, idType: String, entitlementInput: EntitlementInput!): Entitlement
   getPaymentMode(flow: FlowType , appointmentId: String , id: String, idType: String): PaymentModeResponse

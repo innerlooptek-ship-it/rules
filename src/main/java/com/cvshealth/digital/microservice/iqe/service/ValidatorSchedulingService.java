@@ -11,7 +11,6 @@ import com.cvshealth.digital.microservice.iqe.dto.SchedulingConsentInput;
 import com.cvshealth.digital.microservice.iqe.dto.VaccineInput;
 import com.cvshealth.digital.microservice.iqe.enums.*;
 import com.cvshealth.digital.microservice.iqe.exception.CvsException;
-import com.cvshealth.digital.microservice.iqe.model.GetConsentInput;
 import com.cvshealth.digital.microservice.iqe.utils.DateUtil;
 import com.cvshealth.digital.microservice.iqe.utils.ValidationUtils;
 import io.micrometer.common.util.StringUtils;
@@ -110,45 +109,6 @@ public class ValidatorSchedulingService {
 
 
 
-    /**
-     * Validates the input parameters for retrieving visitor management consents.
-     *
-     * @param consentInput The input object containing consent retrieval parameters to validate
-     * @param eventMap Map containing event tracking information for error reporting
-     *
-     * @throws CvsException with error key "GET_VM_CONSENTS" in the following cases:
-     *         - MISSING_APPOINTMENT_ID: if appointment ID is null or empty
-     *         - MISSING_FLOW: if flow value is null or empty
-     *         - INVALID_FLOW: if flow value is not "VM" (case-insensitive)
-     *         - MISSING_CONSENT_DATA_INPUT: if a consent data input list is null or empty
-     *         - MISSING_PATIENT_REFERENCE_ID: if any consent data input is missing patient reference ID
-     *         - MISSING_CONSENT_CONTEXT: if any consent data input is missing consent context
-     *
-     * @apiNote This method performs comprehensive validation of consent retrieval parameters
-     *          including appointment ID, flow type, and consent data inputs. The flow must
-     *          specifically be "VM" (Visitor Management) to be valid.
-     *
-     * @implNote Uses ValidationUtils for string validation and list property validation.
-     *          Performs additional custom validation for the flow value to ensure it matches
-     *          the required "VM" value. List validation ensures all consent data entries
-     *          have required fields populated.
-     */
-    public void validateGetConsent(GetConsentInput consentInput, Map<String, Object> eventMap) throws CvsException {
-
-       validationUtils.validateString(consentInput.getAppointmentId(), "MISSING_APPOINTMENT_ID", ErrorKey.GET_VM_CONSENTS, eventMap);
-       validationUtils.validateString(consentInput.getFlow(), "MISSING_FLOW", ErrorKey.GET_VM_CONSENTS, eventMap);
-
-       if(!consentInput.getFlow().equalsIgnoreCase("VM"))
-          validationUtils.throwValidationException("INVALID_FLOW", ErrorKey.GET_VM_CONSENTS, eventMap);
-
-       List<GetConsentInput.ConsentDataInput> consentDataInput = consentInput.getConsentsDataInput();
-
-       if(CollectionUtils.isEmpty(consentDataInput))
-          validationUtils.throwValidationException("MISSING_CONSENT_DATA_INPUT", ErrorKey.GET_VM_CONSENTS, eventMap);
-
-       validationUtils.validatePropertyInList(consentDataInput, GetConsentInput.ConsentDataInput::getPatientReferenceId, "MISSING_PATIENT_REFERENCE_ID", ErrorKey.GET_VM_CONSENTS, eventMap);
-       validationUtils.validatePropertyInList(consentDataInput, GetConsentInput.ConsentDataInput::getConsentContext, "MISSING_CONSENT_CONTEXT", ErrorKey.GET_VM_CONSENTS, eventMap);
-    }
 
     /**
      * Validates the consent input parameters for setting visitor management consents.
@@ -170,60 +130,6 @@ public class ValidatorSchedulingService {
     }
 
 
-    public void validateGetConsentsForScheduling(GetConsentInput consentInput, Map<String, Object> eventMap) throws CvsException {
-
-       validationUtils.validateString(consentInput.getFlow(), "MISSING_FLOW", ErrorKey.GET_CONSENTS, eventMap);
-
-       if(!consentInput.getFlow().equalsIgnoreCase("vaccine"))
-          validationUtils.throwValidationException("INVALID_FLOW", ErrorKey.GET_CONSENTS, eventMap);
-
-       if(StringUtils.isNotBlank(consentInput.getLob()))
-          validationUtils.validateEnumValues(List.of(consentInput.getLob().toUpperCase()), LobEnum.class , "INVALID_LOB", ErrorKey.GET_CONSENTS, eventMap);
-       if(StringUtils.isNotBlank(consentInput.getBrand()))
-          validationUtils.validateEnumValues(List.of(consentInput.getBrand().toUpperCase()), BrandEnum.class , "INVALID_BRAND", ErrorKey.GET_CONSENTS, eventMap);
-       if(StringUtils.isNotBlank(consentInput.getModality()))
-          validationUtils.validateEnumValues(List.of(consentInput.getModality()), ModalityEnum.class , "INVALID_MODALITY", ErrorKey.GET_CONSENTS, eventMap);
-       if(StringUtils.isNotBlank(consentInput.getState()))
-          validationUtils.validateEnumValues(List.of(consentInput.getState().toUpperCase()), StatesEnum.class , "INVALID_STATE", ErrorKey.GET_CONSENTS, eventMap);
-       if(StringUtils.isNotBlank(consentInput.getAuthType()))
-          validationUtils.validateEnumValues(List.of(consentInput.getAuthType().toUpperCase()), AuthTypeEnum.class , "INVALID_AUTH_TYPE", ErrorKey.GET_CONSENTS, eventMap);
-
-       List<GetConsentInput.ConsentDataInput> consentDataInput = consentInput.getConsentsDataInput();
-
-       if(CollectionUtils.isEmpty(consentDataInput))
-          validationUtils.throwValidationException("MISSING_CONSENT_DATA_INPUT", ErrorKey.GET_CONSENTS, eventMap);
-       validationUtils.validatePropertyInList(consentDataInput, GetConsentInput.ConsentDataInput::getPatientReferenceId, "MISSING_PATIENT_REFERENCE_ID", ErrorKey.GET_CONSENTS, eventMap);
-       validationUtils.validatePropertyInList(consentDataInput, GetConsentInput.ConsentDataInput::getDateOfBirth, "MISSING_DATE_OF_BIRTH", ErrorKey.GET_CONSENTS, eventMap);
-       validationUtils.validatePropertyInList(consentDataInput, GetConsentInput.ConsentDataInput::getConsentContext, "MISSING_CONSENT_CONTEXT", ErrorKey.GET_CONSENTS, eventMap);
-       validationUtils.validateEnumValues(
-             consentDataInput.stream()
-                   .flatMap(input -> input.getConsentContext().stream()).toList() , ConsentContextEnum.class,
-             "INVALID_CONSENT_CONTEXT",
-             ErrorKey.GET_CONSENTS,
-             eventMap
-       );
-       validationUtils.validateEnumValuesByMappedValue(
-             consentDataInput.stream()
-                   .map(GetConsentInput.ConsentDataInput::getRelation)
-                   .filter(Objects::nonNull)
-                   .toList(),
-             ConsentRelationEnum.class,
-             "INVALID_RELATION",
-             ErrorKey.GET_CONSENTS,
-             eventMap
-       );
-
-       validationUtils.validateDateFormatInList(
-             consentDataInput.stream()
-                   .map(GetConsentInput.ConsentDataInput::getDateOfBirth)
-                   .filter(Objects::nonNull)
-                   .toList(),
-             DhsCoreConstants.YYYY_MM_DD,
-             "INVALID_DATE_OF_BIRTH_FORMAT",
-             ErrorKey.GET_CONSENTS,
-             eventMap
-       );
-    }
 
 
 }

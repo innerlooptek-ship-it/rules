@@ -48,6 +48,8 @@ public interface SchedulingConstants {
 	String USER_KEY_VALUE_STATE = "userKeyValueState";
 	String LINE_OF_BUSINESS = "lineOfBusiness";
 	String ENV_HEADER_NAME = "ENV";
+	String AVAILABLE_DATE_FORMAT = "yyyy-MM-dd";
+	String MC_API_DATE_FORMAT = "MM/dd/yyyy";
 	String GRID_HEADER_NAME = "grid";
 	String X_APP_CONSUMER_INFO = "x-appConsumerInfo";
 	String SUBS_APP = "subscriptionApp|web";
