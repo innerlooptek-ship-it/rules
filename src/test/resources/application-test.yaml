@@ -1,0 +1,83 @@
+spring:
+  cassandra:
+    keyspace-name: iqe_test
+    contact-points: localhost
+    port: 9042
+    local-datacenter: datacenter1
+    schema-action: create_if_not_exists
+    connection:
+      connect-timeout: 10s
+      init-query-timeout: 10s
+    request:
+      timeout: 10s
+      page-size: 5000
+    
+  graphql:
+    graphiql:
+      enabled: false
+      
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.GraphQlWebMvcAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.GraphQlWebFluxAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.servlet.GraphQlWebMvcAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.reactive.GraphQlWebFluxAutoConfiguration
+
+  jpa:
+    open-in-view: false
+
+  main:
+    allow-bean-definition-overriding: true
+
+logging:
+  level:
+    com.cvshealth.digital.microservice.iqe: DEBUG
+    org.springframework.data.cassandra: DEBUG
+    org.testcontainers: INFO
+    
+custom:
+  scheduleEncryptDecryptKey: "dGVzdC1lbmNyeXB0aW9uLWtleS0xMjM0NTY3ODkwMTIzNDU2"
+
+api:
+  configs:
+    iqe:
+      getIQEMcCoreQuestionnarie:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/questionnaire"
+        readTimeout: 5000
+        connectionTimeout: 3000
+      dynamicFlowConditionEvaluation:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/dynamic-flow"
+        readTimeout: 5000
+        connectionTimeout: 3000
+    consents:
+      getPatientConsents:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/consents"
+        readTimeout: 5000
+        connectionTimeout: 3000
+        userName: "test-user"
+        password: "test-password"
+    appointment:
+      getAppointment:
+        baseUrl: "http://localhost:8080"
+        uri: "/api/appointment"
+        readTimeout: 5000
+        connectionTimeout: 3000
+  
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      simple:
+        enabled: true
