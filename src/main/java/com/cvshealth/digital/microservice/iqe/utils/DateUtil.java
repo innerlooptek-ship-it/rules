@@ -1,6 +1,6 @@
 package com.cvshealth.digital.microservice.iqe.utils;
 
-import com.cvshealth.digital.microservice.common.constants.SchedulingConstants;
+import com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,8 +10,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
-import static com.cvshealth.digital.microservice.locator.constants.DHSLocatorServiceConstants.AVAILABLE_DATE_FORMAT;
-import static com.cvshealth.digital.microservice.locator.constants.DHSLocatorServiceConstants.MC_API_DATE_FORMAT;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.AVAILABLE_DATE_FORMAT;
+import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstants.MC_API_DATE_FORMAT;
 
 /**
  * The Date Utils class to include date conversion functions.

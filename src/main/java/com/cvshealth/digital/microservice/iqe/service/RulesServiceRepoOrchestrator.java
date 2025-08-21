@@ -21,8 +21,6 @@ import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstan
 
 
 @Component
-
-/** The Constant log. */
 @Slf4j
 @RequiredArgsConstructor
 public class RulesServiceRepoOrchestrator {
