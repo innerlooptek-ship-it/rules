@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +28,14 @@ public class EnhancedIQEService {
         
         if (!featureProperties.isEnhancedRedisCachingEnabled()) {
             log.debug("Enhanced Redis caching disabled, falling back to original implementation");
-            Map<String, Object> eventMap = new HashMap<>();
-            return iqeRepoOrchestrator.getQuestionnaireByActionId(actionId, iqeOutPut, eventMap);
+            return resilientCacheService.getQuestionnaireWithResilience(actionId)
+                .map(result -> {
+                    iqeOutPut.setActions(result.getActions());
+                    iqeOutPut.setQuestions(result.getQuestions());
+                    iqeOutPut.setDetails(result.getDetails());
+                    iqeOutPut.setStatusCode("0000");
+                    return iqeOutPut;
+                });
         }
         
         return resilientCacheService.getQuestionnaireWithResilience(actionId)

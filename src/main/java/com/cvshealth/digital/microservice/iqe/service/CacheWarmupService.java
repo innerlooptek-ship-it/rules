@@ -10,6 +10,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class CacheWarmupService {
                     .doOnNext(result -> log.debug("Warmed up cache for actionId: {}", actionId))
                     .onErrorResume(e -> {
                         log.warn("Failed to warm up cache for actionId: {}", actionId, e);
-                        return Flux.empty();
+                        return Mono.empty();
                     });
             })
             .subscribe(

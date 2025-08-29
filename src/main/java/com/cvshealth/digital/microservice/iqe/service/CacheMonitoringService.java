@@ -22,13 +22,13 @@ public class CacheMonitoringService {
     private final AtomicLong cacheHitRate = new AtomicLong(0);
     
     public void initializeMetrics() {
-        Gauge.builder("cache.size")
+        Gauge.builder("cache.size", cacheSize, AtomicLong::get)
             .description("Current cache size")
-            .register(meterRegistry, cacheSize, AtomicLong::get);
+            .register(meterRegistry);
             
-        Gauge.builder("cache.hit.rate")
+        Gauge.builder("cache.hit.rate", cacheHitRate, AtomicLong::get)
             .description("Cache hit rate percentage")
-            .register(meterRegistry, cacheHitRate, AtomicLong::get);
+            .register(meterRegistry);
     }
     
     @Scheduled(fixedRate = 60000)

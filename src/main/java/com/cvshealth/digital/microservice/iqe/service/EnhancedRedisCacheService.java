@@ -49,6 +49,7 @@ public class EnhancedRedisCacheService {
             .getKeyPattern().replace("{actionId}", actionId);
         return getFromCache(cacheKey)
             .cast(List.class)
+            .map(list -> (List<Questions>) list)
             .onErrorResume(e -> {
                 log.warn("Error getting questions from cache: {}", e.getMessage());
                 return Mono.empty();
@@ -64,6 +65,7 @@ public class EnhancedRedisCacheService {
             .getKeyPattern().replace("{flow}", flow);
         return getFromCache(cacheKey)
             .cast(List.class)
+            .map(list -> (List<RulesByFlowEntity>) list)
             .onErrorResume(e -> {
                 log.warn("Error getting rules from cache: {}", e.getMessage());
                 return Mono.empty();
@@ -206,6 +208,7 @@ public class EnhancedRedisCacheService {
             .getKeyPattern().replace("{actionId}", actionId);
         return getFromCache(cacheKey)
             .cast(List.class)
+            .map(list -> (List<AnswerOptions>) list)
             .onErrorResume(e -> {
                 log.warn("Error getting answer options from cache: {}", e.getMessage());
                 return Mono.empty();
@@ -217,6 +220,7 @@ public class EnhancedRedisCacheService {
             .getKeyPattern().replace("{actionId}", actionId);
         return getFromCache(cacheKey)
             .cast(List.class)
+            .map(list -> (List<Details>) list)
             .onErrorResume(e -> {
                 log.warn("Error getting details from cache: {}", e.getMessage());
                 return Mono.empty();
