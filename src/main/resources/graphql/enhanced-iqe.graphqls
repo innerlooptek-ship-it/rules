@@ -1,0 +1,59 @@
+type Query {
+    getQuestionnaireEnhanced(actionId: String!): QuestionareRequest
+}
+
+type QuestionareRequest {
+    actions: Actions
+    questions: [Questions]
+    details: [Details]
+    statusCode: String
+    errorDescription: String
+}
+
+type Actions {
+    actionId: String
+    actionText: String
+    questionIds: [String]
+    detailIds: [String]
+}
+
+type Questions {
+    actionId: String
+    questionId: String
+    text: String
+    errorMessage: String
+    answerType: String
+    answerOptions: [AnswerOptions]
+    helpText: String
+    characterLimit: Int
+    stacked: Boolean
+    sequenceId: Int
+    required: Boolean
+    linkText: String
+    questionNumber: Int
+    skipLegend: String
+    subContext: String
+}
+
+type AnswerOptions {
+    actionId: String
+    questionId: String
+    answerOptionId: String
+    text: String
+    value: String
+    relatedQuestions: [Questions]
+    sequenceId: Int
+    additionalDetailText: String
+}
+
+type Details {
+    actionId: String
+    detailId: String
+    footer: String
+    helper: String
+    instructions: String
+    pageNumber: Int
+    sequenceId: Int
+    subContext: String
+    title: String
+}

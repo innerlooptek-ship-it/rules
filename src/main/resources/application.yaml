@@ -34,6 +34,8 @@ service:
 
   # Redis Configuration. prefix: service.redis-cache
   redis-cache:
+    enabled: true
+    strategy: "redis-first"
     baseUrl: https://internal-uat-test-east.digital-healthservices.cvs.com/cache/v1
     readTimeout: 100
     writeTimeout: 100
@@ -42,8 +44,47 @@ service:
     headers:
       - contentType: application/json
       - accept: application/json
-    redisFlag: false
-    cacheType: genericcache_1h_noextend
+    redisFlag: true
+    cacheType: questionnaire_cache_2h_extend
+    
+    table-caching:
+      enabled: true
+      strategy: "selective"
+      tables:
+        actions:
+          enabled: true
+          ttl: "2h"
+          key-pattern: "questionnaire:tables:actions"
+        questions:
+          enabled: true
+          ttl: "2h"
+          key-pattern: "questionnaire:tables:questions:{actionId}"
+        rules_by_flow:
+          enabled: true
+          ttl: "4h"
+          key-pattern: "questionnaire:tables:rules_by_flow:{flow}"
+        answer_options:
+          enabled: true
+          ttl: "2h"
+          key-pattern: "questionnaire:tables:answer_options:{actionId}"
+        questions_details:
+          enabled: true
+          ttl: "2h"
+          key-pattern: "questionnaire:tables:details:{actionId}"
+    
+    synchronization:
+      enabled: true
+      invalidation-strategy: "immediate"
+      write-through: false
+      write-behind: true
+      
+    fallback:
+      cassandra-timeout: "5s"
+      redis-timeout: "2s"
+      circuit-breaker:
+        enabled: true
+        failure-threshold: 5
+        recovery-timeout: "30s"
 
 
 # Spring Configuration
@@ -214,6 +255,10 @@ feature:
     enableSchedulingConsents: true
     mcGroupScheduling: true
     isStateRestrictedEnabled: true
+    enhanced-redis-caching: true
+    table-level-caching: true
+    redis-first-strategy: true
+    cassandra-fallback: true
 
 state-minor-age-limit:
   config:

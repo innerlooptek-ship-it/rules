@@ -133,6 +133,13 @@ dependencies {
     testImplementation("org.jbehave:jbehave-gherkin:5.2.0")
     testImplementation("org.projectlombok:lombok:1.18.28")
     testImplementation("io.projectreactor:reactor-test:3.6.4")
+    
+    // Circuit breaker for resilience
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
+    implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
+    
+    // For event publishing
+    implementation("org.springframework:spring-context")
 }
 
 group = "com.cvshealth.digital.microservice.iqe"

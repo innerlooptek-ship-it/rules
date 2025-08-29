@@ -21,4 +21,12 @@ public class FeatureProperties {
     public Map<String, Boolean> getLive() {
         return this.live;
     }
+    
+    public boolean isEnhancedRedisCachingEnabled() {
+        return live != null && Boolean.TRUE.equals(live.get("enhanced-redis-caching"));
+    }
+    
+    public boolean isTableLevelCachingEnabled() {
+        return live != null && Boolean.TRUE.equals(live.get("table-level-caching"));
+    }
 }

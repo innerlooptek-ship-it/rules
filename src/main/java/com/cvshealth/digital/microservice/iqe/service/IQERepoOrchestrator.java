@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.springframework.context.ApplicationEventPublisher;
+import com.cvshealth.digital.microservice.iqe.service.CacheSynchronizationService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -40,6 +42,7 @@ public class IQERepoOrchestrator {
     private final QuestionnaireDetailsRepository questionnaireDetailsRepo;
     private final AnswerOptionsRepository answerOptionsRepo;
     private final RedisCacheService redisCacheService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Generate a random UUID.
@@ -265,6 +268,11 @@ public class IQERepoOrchestrator {
             }).flatMap(iqeOutPuts -> {
                 Map<String, String> reqHdrMap = new HashMap<>();
                 questionareRequest.getRulesByFlow().setUpdate(false);
+                
+                eventPublisher.publishEvent(new CacheSynchronizationService.CassandraUpdateEvent(
+                    "actions", questionareRequest.getRulesByFlow().getActionId(), 
+                    questionareRequest.getRulesByFlow().getFlow()));
+                
                 return Mono.defer(() -> redisCacheService.setDataToRedisRest(questionareRequest.getRulesByFlow().getActionId(),
                          questionareRequest, reqHdrMap)).onErrorResume(e -> {
                     log.error("Error setting data to redis in insertQuestionsIntoDB", e.getMessage());
