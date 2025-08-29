@@ -20,32 +20,46 @@ public class RedisFirstStrategy implements CachingStrategy {
     
     @Override
     public Mono<QuestionareRequest> getQuestionnaire(String actionId) {
+        log.debug("Redis-first strategy: Querying Redis first for actionId: {}", actionId);
+        
         return redisCacheService.getFromTableCache(actionId)
             .doOnNext(cached -> {
-                log.debug("Cache hit for actionId: {}", actionId);
+                log.info("Redis cache HIT for actionId: {}", actionId);
                 metricsService.recordCacheHit("redis");
             })
             .switchIfEmpty(
-                cassandraService.getQuestionnaire(actionId)
-                    .doOnNext(result -> {
-                        log.debug("Cache miss, loaded from Cassandra for actionId: {}", actionId);
-                        metricsService.recordCacheMiss("redis");
-                    })
-                    .flatMap(result -> redisCacheService.cacheQuestionnaire(result)
-                        .thenReturn(result))
+                Mono.defer(() -> {
+                    log.info("Redis cache MISS for actionId: {}, falling back to Cassandra", actionId);
+                    metricsService.recordCacheMiss("redis");
+                    return cassandraService.getQuestionnaire(actionId)
+                        .doOnNext(result -> log.info("Cassandra fallback SUCCESS for actionId: {}", actionId))
+                        .doOnError(error -> log.error("Cassandra fallback FAILED for actionId: {}", actionId, error))
+                        .onErrorResume(error -> {
+                            log.warn("Both Redis and Cassandra unavailable for actionId: {}", actionId);
+                            return Mono.empty();
+                        });
+                })
             );
     }
     
     @Override
     public Mono<Void> invalidateCache(String actionId) {
+        log.debug("Invalidating Redis cache for actionId: {}", actionId);
         return redisCacheService.invalidateTableCache("questions", actionId)
             .then(redisCacheService.invalidateTableCache("answer_options", actionId))
-            .then(redisCacheService.invalidateTableCache("actions", actionId));
+            .then(redisCacheService.invalidateTableCache("actions", actionId))
+            .then(redisCacheService.invalidateTableCache("questions_details", actionId));
     }
     
     @Override
     public Mono<Void> refreshCache(String actionId) {
+        log.debug("Refreshing Redis cache for actionId: {}", actionId);
         return cassandraService.getQuestionnaire(actionId)
-            .flatMap(redisCacheService::cacheQuestionnaire);
+            .flatMap(redisCacheService::cacheQuestionnaire)
+            .doOnSuccess(v -> log.debug("Cache refresh completed for actionId: {}", actionId))
+            .onErrorResume(error -> {
+                log.warn("Cache refresh failed for actionId: {}", actionId, error);
+                return Mono.empty();
+            });
     }
 }

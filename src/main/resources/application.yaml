@@ -47,44 +47,49 @@ service:
     redisFlag: true
     cacheType: questionnaire_cache_2h_extend
     
+    # Read-optimized caching configuration
     table-caching:
       enabled: true
-      strategy: "selective"
+      strategy: "selective"  # selective (recommended by Redis docs)
+      warmup-enabled: true   # Enable cache warmup for complete data availability
+      warmup-batch-size: 50  # Process questionnaires in batches
       tables:
         actions:
           enabled: true
-          ttl: "2h"
-          key-pattern: "questionnaire:tables:actions"
+          ttl: "4h"
+          key-pattern: "questionnaire:action:{actionId}"
         questions:
           enabled: true
-          ttl: "2h"
-          key-pattern: "questionnaire:tables:questions:{actionId}"
+          ttl: "4h"
+          key-pattern: "questionnaire:questions:{actionId}"
         rules_by_flow:
           enabled: true
-          ttl: "4h"
-          key-pattern: "questionnaire:tables:rules_by_flow:{flow}"
+          ttl: "6h"
+          key-pattern: "questionnaire:rules:{flow}"
         answer_options:
           enabled: true
-          ttl: "2h"
-          key-pattern: "questionnaire:tables:answer_options:{actionId}"
+          ttl: "4h"
+          key-pattern: "questionnaire:answers:{actionId}"
         questions_details:
           enabled: true
-          ttl: "2h"
-          key-pattern: "questionnaire:tables:details:{actionId}"
+          ttl: "4h"
+          key-pattern: "questionnaire:details:{actionId}"
     
-    synchronization:
+    read-optimization:
       enabled: true
-      invalidation-strategy: "immediate"
-      write-through: false
-      write-behind: true
+      prefer-redis: true      # Redis as primary data store for reads
+      seamless-fallback: true # Seamless fallback to Cassandra
+      timeout-ms: 2000       # Redis read timeout
+      retry-attempts: 2      # Retry failed Redis reads
       
     fallback:
       cassandra-timeout: "5s"
       redis-timeout: "2s"
       circuit-breaker:
         enabled: true
-        failure-threshold: 5
+        failure-threshold: 3   # Reduced threshold for faster failover
         recovery-timeout: "30s"
+        sliding-window-size: 10
 
 
 # Spring Configuration
@@ -257,8 +262,9 @@ feature:
     isStateRestrictedEnabled: true
     enhanced-redis-caching: true
     table-level-caching: true
-    redis-first-strategy: true
-    cassandra-fallback: true
+    redis-primary-reads: true      # Redis as primary for all reads
+    cache-warmup: true             # Enable cache warmup
+    seamless-fallback: true        # Enable seamless Cassandra fallback
 
 state-minor-age-limit:
   config:
