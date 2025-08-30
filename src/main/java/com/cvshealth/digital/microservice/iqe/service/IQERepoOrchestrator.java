@@ -251,19 +251,32 @@ public class IQERepoOrchestrator {
                 iqeResponse.setStatusCode("0000");
                 iqeResponse.setStatusDescription(("Data inserted successfully"));
                 iqeResponse.setActionId(questionareRequest.getRulesByFlow().getActionId());
+                
+                String actionId = questionareRequest.getRulesByFlow().getActionId();
+                String flow = questionareRequest.getRulesByFlow().getFlow();
+                
+                String flowCacheKey = "rules_by_flow:" + flow;
+                rulesByFlowRepo.findByFlow(flow).collectList()
+                        .flatMap(rules -> redisCacheService.setDataToRedisRest(flowCacheKey, rules, eventMap))
+                        .subscribe();
+                
+                String actionsCacheKey = "actions:" + actionId;
+                redisCacheService.setDataToRedisRest(actionsCacheKey, t.getT2(), eventMap).subscribe();
+                
+                String questionsCacheKey = "questions:" + actionId;
+                redisCacheService.setDataToRedisRest(questionsCacheKey, t.getT3(), eventMap).subscribe();
+                
+                String answerOptionsCacheKey = "answer_options:" + actionId;
+                redisCacheService.setDataToRedisRest(answerOptionsCacheKey, t.getT4(), eventMap).subscribe();
+                
+                String detailsCacheKey = "questions_details:" + actionId;
+                redisCacheService.setDataToRedisRest(detailsCacheKey, t.getT5(), eventMap).subscribe();
+                
                 return Mono.just(iqeResponse);
             }).onErrorResume(e -> {
                 log.error("Error inserting data", e);
                 eventMap.put("DBInsertStatus", "FAILED");
                 return Mono.error(new ServerErrorException(FAILURE_CD, e.getMessage()));
-            }).flatMap(iqeOutPuts -> {
-                Map<String, String> reqHdrMap = new HashMap<>();
-                questionareRequest.getRulesByFlow().setUpdate(false);
-                return Mono.defer(() -> redisCacheService.setDataToRedisRest(questionareRequest.getRulesByFlow().getActionId(),
-                         questionareRequest, reqHdrMap)).onErrorResume(e -> {
-                    log.error("Error setting data to redis in insertQuestionsIntoDB", e.getMessage());
-                    return Mono.error(new RedisServerException(FAILURE_CD, e.getMessage()));
-                });
             }).then();
         });
     }
