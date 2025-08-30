@@ -1,0 +1,128 @@
+{
+  "rulesByFlow": {
+    "flow": "PREVENTIVE_CARE_2024",
+    "ruleId": "RULE_PREVENTIVE_001",
+    "ruleName": "Preventive Care Assessment",
+    "actionId": "action_preventive_001",
+    "condition": "age >= 25 && hasInsurance == true",
+    "lob": "PREVENTIVE",
+    "salience": 200,
+    "isActive": true,
+    "isUpdate": false,
+    "audit": {
+      "createdBy": "devin_system",
+      "createdTs": "2024-08-30T05:40:00Z",
+      "modifiedBy": "devin_system",
+      "modifiedTs": "2024-08-30T05:40:00Z"
+    }
+  },
+  "actions": {
+    "actionId": "action_preventive_001",
+    "actionText": "Preventive Care Assessment Questionnaire",
+    "questionIds": ["PC001", "PC002", "PC003"],
+    "detailIds": ["PD001", "PD002"]
+  },
+  "questions": [
+    {
+      "actionId": "action_preventive_001",
+      "questionId": "PC001",
+      "text": "What is your age?",
+      "errorMessage": "Please enter a valid age",
+      "answerType": "NUMBER",
+      "helpText": "Enter your current age in years",
+      "characterLimit": 3,
+      "stacked": false,
+      "sequenceId": 1,
+      "required": true,
+      "questionNumber": 1,
+      "subContext": "DEMOGRAPHICS",
+      "answerOptions": []
+    },
+    {
+      "actionId": "action_preventive_001",
+      "questionId": "PC002",
+      "text": "When was your last preventive screening?",
+      "errorMessage": "Please select a time period",
+      "answerType": "RADIO",
+      "helpText": "Select when you last had a preventive health screening",
+      "stacked": false,
+      "sequenceId": 2,
+      "required": true,
+      "questionNumber": 2,
+      "subContext": "SCREENING_HISTORY",
+      "answerOptions": [
+        {
+          "actionId": "action_preventive_001",
+          "questionId": "PC002",
+          "answerOptionId": "PA002_1",
+          "text": "Within the last 6 months",
+          "value": "6_months",
+          "sequenceId": 1
+        },
+        {
+          "actionId": "action_preventive_001",
+          "questionId": "PC002",
+          "answerOptionId": "PA002_2",
+          "text": "6-12 months ago",
+          "value": "6_12_months",
+          "sequenceId": 2
+        },
+        {
+          "actionId": "action_preventive_001",
+          "questionId": "PC002",
+          "answerOptionId": "PA002_3",
+          "text": "More than 1 year ago",
+          "value": "over_1_year",
+          "sequenceId": 3
+        },
+        {
+          "actionId": "action_preventive_001",
+          "questionId": "PC002",
+          "answerOptionId": "PA002_4",
+          "text": "Never had screening",
+          "value": "never",
+          "sequenceId": 4
+        }
+      ]
+    },
+    {
+      "actionId": "action_preventive_001",
+      "questionId": "PC003",
+      "text": "Do you have any specific health concerns?",
+      "errorMessage": "Please provide health concern details",
+      "answerType": "TEXTAREA",
+      "helpText": "Describe any specific health concerns or symptoms you'd like to discuss",
+      "characterLimit": 500,
+      "stacked": false,
+      "sequenceId": 3,
+      "required": false,
+      "questionNumber": 3,
+      "subContext": "HEALTH_CONCERNS",
+      "answerOptions": []
+    }
+  ],
+  "details": [
+    {
+      "detailId": "PD001",
+      "actionId": "action_preventive_001",
+      "title": "Preventive Care Assessment",
+      "instructions": "Please complete this assessment to help us understand your preventive care needs",
+      "helper": "This questionnaire helps determine appropriate preventive care services for you",
+      "pageNumber": 1,
+      "sequenceId": 1,
+      "subContext": "INTRO",
+      "footer": "Your information is secure and confidential"
+    },
+    {
+      "detailId": "PD002",
+      "actionId": "action_preventive_001",
+      "title": "Assessment Complete",
+      "instructions": "Thank you for completing the preventive care assessment",
+      "helper": "We will use this information to recommend appropriate preventive care services",
+      "pageNumber": 2,
+      "sequenceId": 2,
+      "subContext": "COMPLETION",
+      "footer": "Contact us if you have any questions about your preventive care options"
+    }
+  ]
+}

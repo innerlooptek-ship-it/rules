@@ -1,0 +1,215 @@
+{
+  "rulesByFlow": {
+    "flow": "PREVENTIVE_CARE_2024",
+    "ruleId": "RULE_PREVENTIVE_CARE_001",
+    "ruleName": "Preventive Care Assessment Questionnaire",
+    "actionId": "action_preventive_care_2024",
+    "condition": "age >= 25 && hasPreventiveCoverage == true && lastScreening > 12months",
+    "lob": "PREVENTIVE",
+    "salience": 200,
+    "isActive": true,
+    "isUpdate": false,
+    "audit": {
+      "createdBy": "devin_test_system",
+      "createdTs": "2024-08-30T05:40:00Z",
+      "modifiedBy": "devin_test_system",
+      "modifiedTs": "2024-08-30T05:40:00Z"
+    }
+  },
+  "actions": {
+    "actionId": "action_preventive_care_2024",
+    "actionText": "Preventive Care Assessment Questionnaire",
+    "questionIds": ["PC001", "PC002", "PC003", "PC004", "PC005"],
+    "detailIds": ["PD001", "PD002"]
+  },
+  "questions": [
+    {
+      "actionId": "action_preventive_care_2024",
+      "questionId": "PC001",
+      "text": "What is your current age?",
+      "errorMessage": "Please enter a valid age between 18-120",
+      "answerType": "NUMBER",
+      "helpText": "Enter your age in years for wellness screening eligibility",
+      "characterLimit": 3,
+      "stacked": false,
+      "sequenceId": 1,
+      "required": true,
+      "questionNumber": 1,
+      "subContext": "DEMOGRAPHICS",
+      "answerOptions": []
+    },
+    {
+      "actionId": "ACTION_WELLNESS_2024_001",
+      "questionId": "WQ002",
+      "text": "Do you have any chronic health conditions?",
+      "errorMessage": "Please select at least one option",
+      "answerType": "CHECKBOX",
+      "helpText": "Select all chronic conditions that apply to you",
+      "stacked": false,
+      "sequenceId": 2,
+      "required": true,
+      "questionNumber": 2,
+      "subContext": "HEALTH_CONDITIONS",
+      "answerOptions": [
+        {
+          "actionId": "action_preventive_care_2024",
+          "questionId": "PC002",
+          "answerOptionId": "PA002_1",
+          "text": "Diabetes",
+          "value": "diabetes",
+          "sequenceId": 1,
+          "relatedQuestionIds": ["WQ003"]
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ002",
+          "answerOptionId": "WA002_2",
+          "text": "Hypertension",
+          "value": "hypertension",
+          "sequenceId": 2
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ002",
+          "answerOptionId": "WA002_3",
+          "text": "Heart Disease",
+          "value": "heart_disease",
+          "sequenceId": 3
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ002",
+          "answerOptionId": "WA002_4",
+          "text": "None of the above",
+          "value": "none",
+          "sequenceId": 4
+        }
+      ]
+    },
+    {
+      "actionId": "ACTION_WELLNESS_2024_001",
+      "questionId": "WQ003",
+      "text": "How long have you been managing diabetes?",
+      "errorMessage": "Please select the duration",
+      "answerType": "RADIO",
+      "helpText": "Select the time period that best describes your diabetes management",
+      "stacked": false,
+      "sequenceId": 3,
+      "required": false,
+      "questionNumber": 3,
+      "subContext": "DIABETES_MANAGEMENT",
+      "answerOptions": [
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ003",
+          "answerOptionId": "WA003_1",
+          "text": "Less than 1 year",
+          "value": "less_than_1_year",
+          "sequenceId": 1
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ003",
+          "answerOptionId": "WA003_2",
+          "text": "1-5 years",
+          "value": "1_to_5_years",
+          "sequenceId": 2
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ003",
+          "answerOptionId": "WA003_3",
+          "text": "More than 5 years",
+          "value": "more_than_5_years",
+          "sequenceId": 3
+        }
+      ]
+    },
+    {
+      "actionId": "ACTION_WELLNESS_2024_001",
+      "questionId": "WQ004",
+      "text": "How often do you exercise per week?",
+      "errorMessage": "Please select your exercise frequency",
+      "answerType": "SELECT",
+      "helpText": "Choose the option that best describes your weekly exercise routine",
+      "stacked": false,
+      "sequenceId": 4,
+      "required": true,
+      "questionNumber": 4,
+      "subContext": "LIFESTYLE",
+      "answerOptions": [
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ004",
+          "answerOptionId": "WA004_1",
+          "text": "Never",
+          "value": "never",
+          "sequenceId": 1
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ004",
+          "answerOptionId": "WA004_2",
+          "text": "1-2 times per week",
+          "value": "1_to_2_times",
+          "sequenceId": 2
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ004",
+          "answerOptionId": "WA004_3",
+          "text": "3-4 times per week",
+          "value": "3_to_4_times",
+          "sequenceId": 3
+        },
+        {
+          "actionId": "ACTION_WELLNESS_2024_001",
+          "questionId": "WQ004",
+          "answerOptionId": "WA004_4",
+          "text": "5+ times per week",
+          "value": "5_plus_times",
+          "sequenceId": 4
+        }
+      ]
+    },
+    {
+      "actionId": "ACTION_WELLNESS_2024_001",
+      "questionId": "WQ005",
+      "text": "Please provide any additional health information or concerns:",
+      "errorMessage": "Please provide valid health information",
+      "answerType": "TEXTAREA",
+      "helpText": "Share any additional health concerns, medications, or information relevant to your wellness screening",
+      "characterLimit": 1000,
+      "stacked": false,
+      "sequenceId": 5,
+      "required": false,
+      "questionNumber": 5,
+      "subContext": "ADDITIONAL_INFO",
+      "answerOptions": []
+    }
+  ],
+  "details": [
+    {
+      "detailId": "WD001",
+      "actionId": "ACTION_WELLNESS_2024_001",
+      "title": "Annual Wellness Screening Information",
+      "instructions": "Please complete all sections of this wellness screening questionnaire accurately",
+      "helper": "This comprehensive assessment helps us understand your current health status and wellness needs",
+      "pageNumber": 1,
+      "sequenceId": 1,
+      "subContext": "INTRO",
+      "footer": "Your health information is protected and confidential"
+    },
+    {
+      "detailId": "WD002",
+      "actionId": "ACTION_WELLNESS_2024_001",
+      "title": "Wellness Screening Completion",
+      "instructions": "Please review all your responses before final submission",
+      "helper": "Ensure all health information is accurate and up-to-date for the best wellness recommendations",
+      "pageNumber": 2,
+      "sequenceId": 2,
+      "subContext": "COMPLETION",
+      "footer": "Thank you for completing your annual wellness screening"
+    }
+  ]
+}

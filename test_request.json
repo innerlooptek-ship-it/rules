@@ -1,0 +1,9 @@
+{
+  "flow": "MC_CORE",
+  "requiredQuestionnaireContext": "MC_CORE_ELIGIBILITY_QUESTION",
+  "reasonId": 86,
+  "reasonMappingId": "137",
+  "lob": "CLINIC",
+  "state": "CA",
+  "modality": "BnMInPerson"
+}

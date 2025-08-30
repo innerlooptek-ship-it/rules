@@ -1,0 +1,86 @@
+{
+  "rulesByFlow": {
+    "flow": "MC_CORE",
+    "ruleId": "RULE_MC_CORE_001",
+    "ruleName": "MC Core Eligibility Assessment",
+    "actionId": "action_mc_core_001",
+    "condition": "reasonId == 30 && reasonMappingId == 48",
+    "lob": "MC_CORE",
+    "salience": 100,
+    "isActive": true,
+    "isUpdate": false,
+    "audit": {
+      "createdBy": "devin_test_system",
+      "createdTs": "2025-08-30T05:55:00Z",
+      "modifiedBy": "devin_test_system",
+      "modifiedTs": "2025-08-30T05:55:00Z"
+    }
+  },
+  "actions": {
+    "actionId": "action_mc_core_001",
+    "actionText": "MC Core Eligibility Questions",
+    "questionIds": ["MC001", "MC002"],
+    "detailIds": ["MD001"]
+  },
+  "questions": [
+    {
+      "actionId": "action_mc_core_001",
+      "questionId": "MC001",
+      "text": "Are you eligible for MC Core services?",
+      "errorMessage": "Please select yes or no",
+      "answerType": "RADIO",
+      "helpText": "Select your eligibility status",
+      "stacked": false,
+      "sequenceId": 1,
+      "required": true,
+      "questionNumber": 1,
+      "subContext": "ELIGIBILITY",
+      "answerOptions": [
+        {
+          "actionId": "action_mc_core_001",
+          "questionId": "MC001",
+          "answerOptionId": "MA001_1",
+          "text": "Yes",
+          "value": "yes",
+          "sequenceId": 1
+        },
+        {
+          "actionId": "action_mc_core_001",
+          "questionId": "MC001",
+          "answerOptionId": "MA001_2",
+          "text": "No",
+          "value": "no",
+          "sequenceId": 2
+        }
+      ]
+    },
+    {
+      "actionId": "action_mc_core_001",
+      "questionId": "MC002",
+      "text": "What is your reason for requesting MC Core services?",
+      "errorMessage": "Please provide a reason",
+      "answerType": "TEXTAREA",
+      "helpText": "Describe your reason for requesting services",
+      "characterLimit": 500,
+      "stacked": false,
+      "sequenceId": 2,
+      "required": true,
+      "questionNumber": 2,
+      "subContext": "REASON",
+      "answerOptions": []
+    }
+  ],
+  "details": [
+    {
+      "detailId": "MD001",
+      "actionId": "action_mc_core_001",
+      "title": "MC Core Eligibility Assessment",
+      "instructions": "Please complete this eligibility assessment for MC Core services",
+      "helper": "This assessment determines your eligibility for MC Core services",
+      "pageNumber": 1,
+      "sequenceId": 1,
+      "subContext": "MC_CORE_ELIGIBILITY",
+      "footer": "MC Core Services - Eligibility Assessment"
+    }
+  ]
+}

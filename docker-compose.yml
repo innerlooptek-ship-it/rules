@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  cassandra:
+    image: cassandra:4.1
+    container_name: iqe-cassandra
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=TestCluster
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    volumes:
+      - ./src/main/resources/cassandra:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe keyspaces'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - iqe-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: iqe-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - iqe-network
+
+volumes:
+  redis-data:
+
+networks:
+  iqe-network:
+    driver: bridge

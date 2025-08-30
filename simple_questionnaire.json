@@ -1,0 +1,86 @@
+{
+  "rulesByFlow": {
+    "flow": "DEVIN_TEST_FLOW_2025",
+    "ruleId": "RULE_DEVIN_TEST_001",
+    "ruleName": "Devin Test Questionnaire 2025",
+    "condition": "age >= 21 && testFlow == true && year == 2025",
+    "lob": "DEVIN_TEST",
+    "salience": 150,
+    "isActive": true,
+    "isUpdate": false,
+    "audit": {
+      "createdBy": "devin_test_system",
+      "createdTs": "2025-08-30T05:47:00Z",
+      "modifiedBy": "devin_test_system",
+      "modifiedTs": "2025-08-30T05:47:00Z"
+    }
+  },
+  "actions": {
+    "actionText": "Devin Test Questions 2025",
+    "questionIds": ["DT001", "DT002"],
+    "detailIds": ["DD001"]
+  },
+  "questions": [
+    {
+      "questionId": "DT001",
+      "text": "What is your current age?",
+      "errorMessage": "Please enter a valid age between 21-120",
+      "answerType": "NUMBER",
+      "helpText": "Enter your current age in years",
+      "characterLimit": 3,
+      "stacked": false,
+      "sequenceId": 1,
+      "required": true,
+      "questionNumber": 1,
+      "subContext": "DEMOGRAPHICS",
+      "answerOptions": []
+    },
+    {
+      "questionId": "DT002",
+      "text": "What is your preferred contact method?",
+      "errorMessage": "Please select a contact method",
+      "answerType": "RADIO",
+      "helpText": "Choose how you would like to be contacted",
+      "stacked": false,
+      "sequenceId": 2,
+      "required": true,
+      "questionNumber": 2,
+      "subContext": "CONTACT_PREFERENCES",
+      "answerOptions": [
+        {
+          "questionId": "DT002",
+          "answerOptionId": "DA002_1",
+          "text": "Email",
+          "value": "email",
+          "sequenceId": 1
+        },
+        {
+          "questionId": "DT002",
+          "answerOptionId": "DA002_2",
+          "text": "Phone",
+          "value": "phone",
+          "sequenceId": 2
+        },
+        {
+          "questionId": "DT002",
+          "answerOptionId": "DA002_3",
+          "text": "Text Message",
+          "value": "sms",
+          "sequenceId": 3
+        }
+      ]
+    }
+  ],
+  "details": [
+    {
+      "detailId": "DD001",
+      "title": "Devin Test Questionnaire 2025",
+      "instructions": "Please complete this test questionnaire for Devin testing",
+      "helper": "This questionnaire is used for testing the endpoint functionality",
+      "pageNumber": 1,
+      "sequenceId": 1,
+      "subContext": "DEVIN_TEST",
+      "footer": "Devin Test System - 2025"
+    }
+  ]
+}
