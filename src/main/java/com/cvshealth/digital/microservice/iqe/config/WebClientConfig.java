@@ -38,17 +38,18 @@ public class WebClientConfig {
                 .build();
 
     }
-    @Bean(name = "mcitGetPatientConsents")
-    public WebClient webClientMCITGetPatientConsents() {
-        ApiConfigs.ApiConfig config = apiConfig.getConfigs().get("consents").get("getPatientConsents");
-        return WebClient.builder()
-                .baseUrl(config.getBaseUrl() + config.getUri())
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeaders(headers -> headers.setBasicAuth(config.getUserName(), config.getPassword()))
-                .clientConnector(addTimeout(config.getReadTimeout(), config.getConnectionTimeout()))
-                .build();
-    }
+    // Temporarily disabled - missing consents configuration
+    // @Bean(name = "mcitGetPatientConsents")
+    // public WebClient webClientMCITGetPatientConsents() {
+    //     ApiConfigs.ApiConfig config = apiConfig.getConfigs().get("consents").get("getPatientConsents");
+    //     return WebClient.builder()
+    //             .baseUrl(config.getBaseUrl() + config.getUri())
+    //             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+    //             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+    //             .defaultHeaders(headers -> headers.setBasicAuth(config.getUserName(), config.getPassword()))
+    //             .clientConnector(addTimeout(config.getReadTimeout(), config.getConnectionTimeout()))
+    //             .build();
+    // }
     @Bean(name = "dynamicFlowConditionEvaluation")
     public WebClient webClientIQEMcCoreGetQuestionnarie() {
         ApiConfigs.ApiConfig config = apiConfig.getConfigs().get("iqe").get("dynamicFlowConditionEvaluation");

@@ -36,6 +36,8 @@ repositories {
 dependencies {
     constraints {
         implementation("net.minidev:json-smart:2.5.2")
+        implementation("ch.qos.logback:logback-core:1.5.18")
+        implementation("ch.qos.logback:logback-classic:1.5.18")
         testImplementation("net.minidev:json-smart:2.5.2")
     }
         compileOnly("org.projectlombok:lombok:1.18.32")
@@ -122,8 +124,8 @@ dependencies {
     implementation("org.modelmapper:modelmapper:2.4.2")
     implementation("org.apache.commons:commons-collections4:4.4")
     implementation("io.netty:netty-handler:4.1.118.Final")
-    implementation("ch.qos.logback:logback-core:1.3.15")
-    implementation("ch.qos.logback:logback-classic:1.3.15")
+    implementation("ch.qos.logback:logback-core:1.5.18")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("commons-io:commons-io:2.14.0")
     compileOnly("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")
