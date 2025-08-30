@@ -21,86 +21,39 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CacheWarmupService {
     
     private final ActionsRepository actionsRepository;
-    private final CassandraService cassandraService;
+    private final DatasetSnapshotService datasetSnapshotService;
     private final EnhancedRedisCacheService redisCacheService;
     private final EnhancedRedisConfig config;
     private final FeatureProperties featureProperties;
     
     @EventListener(ApplicationReadyEvent.class)
-    public void warmupCacheOnStartup() {
-        if (!featureProperties.isEnhancedRedisCachingEnabled()) {
-            log.info("Enhanced Redis caching disabled, skipping cache warmup");
+    public void warmupDatasetOnStartup() {
+        if (!featureProperties.isDatasetSnapshotEnabled()) {
+            log.info("Dataset snapshot caching disabled, skipping dataset warmup");
             return;
         }
         
-        log.info("Starting initial cache warmup for all questionnaire data");
-        performBulkCacheWarmup()
+        log.info("Starting initial dataset warmup (Strategy 1: Dataset Snapshot)");
+        datasetSnapshotService.createCompleteDatasetSnapshot()
             .subscribe(
-                count -> log.info("Initial cache warmup completed: {} questionnaires cached", count),
-                error -> log.error("Initial cache warmup failed", error)
+                v -> log.info("Initial dataset warmup completed successfully"),
+                error -> log.error("Initial dataset warmup failed", error)
             );
     }
     
-    @Scheduled(fixedRate = 14400000) // Every 4 hours
-    public void scheduledCacheRefresh() {
-        if (!featureProperties.isEnhancedRedisCachingEnabled()) {
+    @Scheduled(fixedRateString = "#{${service.redis-cache.dataset-refresh.interval-hours:4} * 3600000}")
+    public void scheduledDatasetRefresh() {
+        if (!featureProperties.isDatasetSnapshotEnabled() || 
+            !config.getDatasetRefresh().isEnabled()) {
             return;
         }
         
-        log.info("Starting scheduled cache refresh");
-        performBulkCacheWarmup()
+        log.info("Starting scheduled dataset refresh (Strategy 1: Dataset Snapshot)");
+        datasetSnapshotService.createCompleteDatasetSnapshot()
             .subscribe(
-                count -> log.info("Scheduled cache refresh completed: {} questionnaires refreshed", count),
-                error -> log.error("Scheduled cache refresh failed", error)
+                v -> log.info("Scheduled dataset refresh completed successfully"),
+                error -> log.error("Scheduled dataset refresh failed", error)
             );
     }
     
-    private Mono<Integer> performBulkCacheWarmup() {
-        AtomicInteger cachedCount = new AtomicInteger(0);
-        
-        return actionsRepository.findAll()
-            .flatMap(action -> {
-                String actionId = action.getActionId();
-                return cassandraService.getQuestionnaire(actionId)
-                    .flatMap(questionnaire -> {
-                        if (questionnaire.getActions() != null && questionnaire.getActions().getActionId() != null) {
-                            return redisCacheService.cacheQuestionnaire(questionnaire)
-                                .doOnSuccess(v -> {
-                                    cachedCount.incrementAndGet();
-                                    log.debug("Cached questionnaire for actionId: {}", actionId);
-                                })
-                                .onErrorResume(e -> {
-                                    log.warn("Failed to cache questionnaire for actionId: {}", actionId, e);
-                                    return Mono.empty();
-                                });
-                        }
-                        return Mono.empty();
-                    })
-                    .onErrorResume(e -> {
-                        log.warn("Failed to load questionnaire from Cassandra for actionId: {}", actionId, e);
-                        return Mono.empty();
-                    });
-            })
-            .then(Mono.fromCallable(cachedCount::get))
-            .timeout(Duration.ofMinutes(30))
-            .doOnSubscribe(s -> log.info("Starting bulk cache warmup process"))
-            .doOnSuccess(count -> log.info("Bulk cache warmup process completed successfully"));
-    }
-    
-    public Mono<Void> warmupSpecificActionIds(String... actionIds) {
-        log.info("Warming up cache for specific actionIds: {}", String.join(", ", actionIds));
-        
-        return Flux.fromArray(actionIds)
-            .flatMap(actionId -> 
-                cassandraService.getQuestionnaire(actionId)
-                    .flatMap(redisCacheService::cacheQuestionnaire)
-                    .doOnSuccess(v -> log.debug("Warmed up cache for actionId: {}", actionId))
-                    .onErrorResume(e -> {
-                        log.warn("Failed to warm up cache for actionId: {}", actionId, e);
-                        return Mono.empty();
-                    })
-            )
-            .then()
-            .doOnSuccess(v -> log.info("Specific actionIds cache warmup completed"));
-    }
 }

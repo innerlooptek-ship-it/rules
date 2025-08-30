@@ -178,7 +178,7 @@ public class EnhancedRedisCacheService {
             });
     }
     
-    private Mono<Void> cacheObject(String key, Object object) {
+    public Mono<Void> cacheObject(String key, Object object) {
         if (!redisConfig.isEnabled()) {
             return Mono.empty();
         }

@@ -26,6 +26,10 @@ public class FeatureProperties {
         return live != null && Boolean.TRUE.equals(live.get("enhanced-redis-caching"));
     }
     
+    public boolean isDatasetSnapshotEnabled() {
+        return live != null && Boolean.TRUE.equals(live.get("dataset-snapshot-caching"));
+    }
+    
     public boolean isTableLevelCachingEnabled() {
         return live != null && Boolean.TRUE.equals(live.get("table-level-caching"));
     }

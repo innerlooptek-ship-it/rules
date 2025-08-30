@@ -20,30 +20,42 @@ public class EnhancedRedisConfig {
     private Integer connectionTimeOut;
     private String cacheType;
     
-    private TableCaching tableCaching = new TableCaching();
-    private Synchronization synchronization = new Synchronization();
+    private DatasetRefresh datasetRefresh = new DatasetRefresh();
+    private ResponseCaching responseCaching = new ResponseCaching();
+    private DatasetKeys datasetKeys = new DatasetKeys();
+    private ReadStrategy readStrategy = new ReadStrategy();
     private Fallback fallback = new Fallback();
     
     @Data
-    public static class TableCaching {
+    public static class DatasetRefresh {
         private boolean enabled = true;
-        private String strategy = "selective";
-        private Map<String, TableConfig> tables;
+        private int intervalHours = 4;
+        private int batchSize = 100;
+        private int timeoutMinutes = 30;
+        private int retryAttempts = 3;
     }
     
     @Data
-    public static class TableConfig {
-        private boolean enabled = true;
-        private String ttl = "2h";
-        private String keyPattern;
+    public static class ResponseCaching {
+        private boolean enabled = false;  // Disabled for Strategy 1
     }
     
     @Data
-    public static class Synchronization {
-        private boolean enabled = true;
-        private String invalidationStrategy = "immediate";
-        private boolean writeThrough = false;
-        private boolean writeBehind = true;
+    public static class DatasetKeys {
+        private String rulesPrefix = "dataset:rules_by_flow:";
+        private String actionsKey = "dataset:actions";
+        private String questionsPrefix = "dataset:questions:";
+        private String answerOptionsPrefix = "dataset:answer_options:";
+        private String detailsPrefix = "dataset:questions_details:";
+        private String metadataKey = "dataset:metadata";
+    }
+    
+    @Data
+    public static class ReadStrategy {
+        private boolean cassandraFirst = true;
+        private boolean redisFallbackOnly = true;
+        private int timeoutMs = 5000;
+        private int retryAttempts = 2;
     }
     
     @Data
@@ -61,7 +73,7 @@ public class EnhancedRedisConfig {
     }
     
     public enum CachingStrategy {
-        REDIS_FIRST, CASSANDRA_FIRST
+        REDIS_FIRST, CASSANDRA_FIRST, DATASET_SNAPSHOT
     }
     
     public CachingStrategy getStrategyEnum() {

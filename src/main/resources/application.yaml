@@ -35,7 +35,7 @@ service:
   # Redis Configuration. prefix: service.redis-cache
   redis-cache:
     enabled: true
-    strategy: "redis-first"
+    strategy: "dataset-snapshot"  # Strategy 1: Dataset Snapshot with Scheduled Refresh
     baseUrl: https://internal-uat-test-east.digital-healthservices.cvs.com/cache/v1
     readTimeout: 100
     writeTimeout: 100
@@ -45,42 +45,31 @@ service:
       - contentType: application/json
       - accept: application/json
     redisFlag: true
-    cacheType: questionnaire_cache_2h_extend
+    cacheType: questionnaire_dataset_6h_noextend
     
-    # Read-optimized caching configuration
-    table-caching:
+    dataset-refresh:
       enabled: true
-      strategy: "selective"  # selective (recommended by Redis docs)
-      warmup-enabled: true   # Enable cache warmup for complete data availability
-      warmup-batch-size: 50  # Process questionnaires in batches
-      tables:
-        actions:
-          enabled: true
-          ttl: "4h"
-          key-pattern: "questionnaire:action:{actionId}"
-        questions:
-          enabled: true
-          ttl: "4h"
-          key-pattern: "questionnaire:questions:{actionId}"
-        rules_by_flow:
-          enabled: true
-          ttl: "6h"
-          key-pattern: "questionnaire:rules:{flow}"
-        answer_options:
-          enabled: true
-          ttl: "4h"
-          key-pattern: "questionnaire:answers:{actionId}"
-        questions_details:
-          enabled: true
-          ttl: "4h"
-          key-pattern: "questionnaire:details:{actionId}"
-    
-    read-optimization:
-      enabled: true
-      prefer-redis: true      # Redis as primary data store for reads
-      seamless-fallback: true # Seamless fallback to Cassandra
-      timeout-ms: 2000       # Redis read timeout
-      retry-attempts: 2      # Retry failed Redis reads
+      interval-hours: 4           # Refresh every 4 hours
+      batch-size: 100            # Process in batches
+      timeout-minutes: 30        # Max refresh time
+      retry-attempts: 3          # Retry failed refreshes
+      
+    response-caching:
+      enabled: false             # Explicitly disabled
+      
+    dataset-keys:
+      rules-prefix: "dataset:rules_by_flow:"
+      actions-key: "dataset:actions"
+      questions-prefix: "dataset:questions:"
+      answer-options-prefix: "dataset:answer_options:"
+      details-prefix: "dataset:questions_details:"
+      metadata-key: "dataset:metadata"
+      
+    read-strategy:
+      cassandra-first: true       # Cassandra as primary data source
+      redis-fallback-only: true   # Redis only during Cassandra outages
+      timeout-ms: 5000           # Cassandra read timeout
+      retry-attempts: 2          # Retry failed Cassandra reads
       
     fallback:
       cassandra-timeout: "5s"
@@ -261,10 +250,10 @@ feature:
     mcGroupScheduling: true
     isStateRestrictedEnabled: true
     enhanced-redis-caching: true
-    table-level-caching: true
-    redis-primary-reads: true      # Redis as primary for all reads
-    cache-warmup: true             # Enable cache warmup
-    seamless-fallback: true        # Enable seamless Cassandra fallback
+    dataset-snapshot-caching: true    # Strategy 1 feature flag
+    cassandra-first-reads: true      # Cassandra as primary for all reads
+    redis-fallback-only: true       # Redis only during Cassandra outages
+    seamless-fallback: true         # Enable seamless Redis fallback
 
 state-minor-age-limit:
   config:

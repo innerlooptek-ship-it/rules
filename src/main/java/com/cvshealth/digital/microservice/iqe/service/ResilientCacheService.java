@@ -59,7 +59,7 @@ public class ResilientCacheService {
     private Mono<QuestionareRequest> redisOnlyFallback(String actionId) {
         return redisCacheService.getFromTableCache(actionId)
             .switchIfEmpty(Mono.error(new ServiceUnavailableException(
-                "Both Cassandra and Redis cache unavailable for actionId: " + actionId)));
+                "Both Cassandra and Redis dataset unavailable for actionId: " + actionId)));
     }
     
     private void initializeCircuitBreakers() {
