@@ -255,22 +255,25 @@ public class IQERepoOrchestrator {
                 String actionId = questionareRequest.getRulesByFlow().getActionId();
                 String flow = questionareRequest.getRulesByFlow().getFlow();
                 
+                Map<String, String> redisEventMap = new HashMap<>();
+                eventMap.forEach((key, value) -> redisEventMap.put(key, value != null ? value.toString() : null));
+                
                 String flowCacheKey = "rules_by_flow:" + flow;
                 rulesByFlowRepo.findByFlow(flow).collectList()
-                        .flatMap(rules -> redisCacheService.setDataToRedisRest(flowCacheKey, rules, eventMap))
+                        .flatMap(rules -> redisCacheService.setDataToRedisRest(flowCacheKey, rules, redisEventMap))
                         .subscribe();
                 
                 String actionsCacheKey = "actions:" + actionId;
-                redisCacheService.setDataToRedisRest(actionsCacheKey, t.getT2(), eventMap).subscribe();
+                redisCacheService.setDataToRedisRest(actionsCacheKey, t.getT2(), redisEventMap).subscribe();
                 
                 String questionsCacheKey = "questions:" + actionId;
-                redisCacheService.setDataToRedisRest(questionsCacheKey, t.getT3(), eventMap).subscribe();
+                redisCacheService.setDataToRedisRest(questionsCacheKey, t.getT3(), redisEventMap).subscribe();
                 
                 String answerOptionsCacheKey = "answer_options:" + actionId;
-                redisCacheService.setDataToRedisRest(answerOptionsCacheKey, t.getT4(), eventMap).subscribe();
+                redisCacheService.setDataToRedisRest(answerOptionsCacheKey, t.getT4(), redisEventMap).subscribe();
                 
                 String detailsCacheKey = "questions_details:" + actionId;
-                redisCacheService.setDataToRedisRest(detailsCacheKey, t.getT5(), eventMap).subscribe();
+                redisCacheService.setDataToRedisRest(detailsCacheKey, t.getT5(), redisEventMap).subscribe();
                 
                 return Mono.just(iqeResponse);
             }).onErrorResume(e -> {
