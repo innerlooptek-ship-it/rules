@@ -8,7 +8,6 @@ import com.cvshealth.digital.microservice.iqe.model.IQEResponse;
 import com.cvshealth.digital.microservice.iqe.model.Questions;
 import com.cvshealth.digital.microservice.iqe.model.RulesDetails;
 import com.cvshealth.digital.microservice.iqe.service.IQEService;
-import com.cvshealth.digital.microservice.iqe.service.SimplifiedIQEService;
 import com.cvshealth.digital.microservice.iqe.dto.IQEMcCoreQuestionnarieRequest;
 import com.cvshealth.digital.microservice.iqe.utils.LoggingUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,12 +40,10 @@ public class IQEController {
     @Autowired(required = false)
     private IQEService iqeService;
     
-    private final SimplifiedIQEService simplifiedIQEService;
     private final LoggingUtils loggingUtils;
     private final Map<String, String> errorMessages;
     
-    public IQEController(SimplifiedIQEService simplifiedIQEService, LoggingUtils loggingUtils, Map<String, String> errorMessages) {
-        this.simplifiedIQEService = simplifiedIQEService;
+    public IQEController(LoggingUtils loggingUtils, Map<String, String> errorMessages) {
         this.loggingUtils = loggingUtils;
         this.errorMessages = errorMessages;
     }
@@ -343,24 +340,7 @@ public class IQEController {
         QuestionareRequest iqeOutPut=new QuestionareRequest();
 
         return Mono.deferContextual(
-                ctx -> {
-                    if (iqeService != null) {
-                        return iqeService.questionnaireByFlowAndCondition(rulesDetails, iqeOutPut, headers);
-                    } else {
-                        IQEMcCoreQuestionnarieRequest request = IQEMcCoreQuestionnarieRequest.builder()
-                                .requiredQuestionnaireContext(rulesDetails.getRequiredQuestionnaireContext())
-                                .flow(rulesDetails.getFlow())
-                                .reasonId(rulesDetails.getReasonId())
-                                .reasonMappingId(rulesDetails.getReasonMappingId())
-                                .build();
-                        
-                        return simplifiedIQEService.dynamicFlowConditionEvaluation(request)
-                                .map(response -> {
-                                    QuestionareRequest result = new QuestionareRequest();
-                                    return result;
-                                });
-                    }
-                })
+                ctx -> iqeService.questionnaireByFlowAndCondition(rulesDetails, iqeOutPut, headers))
                 .onErrorResume(error -> {
                     if (error instanceof CvsException) {
                         return Mono.error(error);
@@ -554,45 +534,4 @@ public class IQEController {
         );
     }
 
-    @Operation(summary = "Create IQE Questionnaire using simplified Redis caching", description = "This API uses complete dataset cached in Redis for all questionnaire operations")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Success Response",
-                            content = {
-                                    @Content(mediaType = "application/json", examples = {@ExampleObject(name = SUCCESS_RESPONSE,
-                                            summary = SUCCESS_MSG,
-                                            value = SUCCESS_RESPONSE_CREATE_QUESTIONNAIRE)})
-                            }),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Bad Request",
-                            content = {
-                                    @Content(mediaType = "application/json", examples = {@ExampleObject(name = BAD_REQUEST_MESSAGE,
-                                            summary = BAD_REQUEST_MESSAGE,
-                                            value = FAILURE_RESPONSE_CREATE_QUESTIONNAIRE)})
-                            })
-            })
-    @PostMapping("/questionnaires/simplified-dynamic-flow-condition-evaluation")
-    public Mono<QuestionareRequest> createQuestionnaireSimplified(@RequestBody IQEMcCoreQuestionnarieRequest questionareRequest,
-                                                                  @RequestHeader Map<String, String> headers) {
-        long lStart = System.currentTimeMillis();
-
-        Map<String, Object> eventMap =
-                LoggingUtils.populateEventMap(
-                        CLASS_NAME,
-                        "createQuestionnaireSimplified",
-                        CLASS_NAME,
-                        "This service uses simplified Redis caching for questionnaire creation",
-                        headers);
-        loggingUtils.entryEventLogging(log, eventMap);
-
-        return simplifiedIQEService.dynamicFlowConditionEvaluation(questionareRequest)
-                .doFinally(response -> {
-                    long endTime = System.currentTimeMillis();
-                    eventMap.put(RESP_TIME, endTime - lStart);
-                    loggingUtils.exitEventLogging(log, eventMap);
-                });
-    }
 }

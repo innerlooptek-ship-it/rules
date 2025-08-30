@@ -24,14 +24,8 @@ import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstan
 
 
 @Component
-
-/** The Constant log. */
-@Slf4j
-
-/**
- * Instantiates a new dhs slot management app helper.
- */
 @RequiredArgsConstructor
+@Slf4j
 public class IQERepoOrchestrator {
 
     private final ActionsRepository actionsRepo;
