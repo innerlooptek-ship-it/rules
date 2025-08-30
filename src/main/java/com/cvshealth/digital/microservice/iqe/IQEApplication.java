@@ -5,12 +5,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.cassandra.repository.config.EnableReactiveCassandraRepositories;
+import org.springframework.context.annotation.FilterType;
 
-@ComponentScan(basePackages = { "com.cvshealth.digital.microservice.repository","com.cvshealth.*" })
+@ComponentScan(basePackages = { "com.cvshealth.*" })
 @EntityScan("com.cvshealth.*")
 @SpringBootApplication
-@EnableReactiveCassandraRepositories
 public class IQEApplication {
 
     public static void main(String[] args) {
