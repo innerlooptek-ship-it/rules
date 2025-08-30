@@ -43,7 +43,7 @@ public class QuestionsEntity {
     @Column("help_text")
     private String helpText;
     @Column("character_limit")
-    private int characterLimit;
+    private Integer characterLimit;
     @Column("is_stacked")
     private boolean stacked;
     @Column("sequence_id")

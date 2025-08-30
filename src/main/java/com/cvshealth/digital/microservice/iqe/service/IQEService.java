@@ -191,20 +191,9 @@ public class IQEService implements SchedulingConstants {
         Map<String, String> eventMap = new HashMap<>();
         log.debug(ENTRY_LOG, methodName);
 
-        return Mono.deferContextual(ctx -> redisCacheService.getDataFromRedis(IQE_QUESTIONNAIRE, actionId, eventMap)
-                        .flatMap(object -> {
-                            if (object != null) {
-                                return Mono.justOrEmpty(object)
-                                        .map(jsonNode -> {
-                                            ObjectMapper mapper = new ObjectMapper();
-                                            return mapper.convertValue(jsonNode, QuestionareRequest.class);
-                                        });
-                            } else {
-                                log.info("No data found in redis for actionId: {}", actionId);
-                                return Mono.empty();
-                            }
-                        })
-                        .switchIfEmpty(Mono.deferContextual(ctx1 -> {
+        // Strategy 1: Cassandra-first with Redis dataset fallback
+        return Mono.deferContextual(ctx -> {
+            log.debug("Strategy 1: Attempting Cassandra-first read for actionId: {}", actionId);
                             Mono<RulesByFlowEntity> rulesByFlowMono = rulesByFlowRepo.findByActionId(actionId)
                                     .next()
                                     .onErrorResume(NoSuchElementException.class, e -> {
@@ -243,10 +232,12 @@ public class IQEService implements SchedulingConstants {
                                                 .build();
 
                                         Audit audit = new Audit();
-                                        audit.setCreatedBy(rulesByFlow.getAudit().getCreatedBy());
-                                        audit.setCreatedTs(rulesByFlow.getAudit().getCreatedTs());
-                                        audit.setModifiedBy(rulesByFlow.getAudit().getModifiedBy());
-                                        audit.setModifiedTs(rulesByFlow.getAudit().getModifiedTs());
+                                        if (rulesByFlow.getAudit() != null) {
+                                            audit.setCreatedBy(rulesByFlow.getAudit().getCreatedBy());
+                                            audit.setCreatedTs(rulesByFlow.getAudit().getCreatedTs());
+                                            audit.setModifiedBy(rulesByFlow.getAudit().getModifiedBy());
+                                            audit.setModifiedTs(rulesByFlow.getAudit().getModifiedTs());
+                                        }
                                         rulesByFlowData.setAudit(audit);
 
                                         Actions actionsData = Actions.builder()
@@ -291,21 +282,27 @@ public class IQEService implements SchedulingConstants {
                                                                                                             .flatMap(questionsDataList -> {
                                                                                                                 // Sort the questionsDataList by sequenceId
                                                                                                                 List<Questions> sortedQuestionsList = questionsDataList.stream()
-                                                                                                                        .sorted(Comparator.comparingInt(Questions::getSequenceId))
+                                                                                                                        .sorted(Comparator.comparing(q -> q.getSequenceId() != null ? q.getSequenceId() : 0))
                                                                                                                         .toList();
                                                                                                                 iqeOutPut.setQuestions(sortedQuestionsList);
-                                                                                                                List<Details> detailsList = filteredDetails.stream()
-                                                                                                                        .map(detailEntity -> Details.builder()
-                                                                                                                                .title(detailEntity.getTitle())
-                                                                                                                                .instructions(detailEntity.getInstructions())
-                                                                                                                                .helper(detailEntity.getHelper())
-                                                                                                                                .subContext(detailEntity.getSubContext())
-                                                                                                                                .pageNumber(detailEntity.getPageNumber())
-                                                                                                                                .sequenceId(detailEntity.getSequenceId())
-                                                                                                                                .footer(detailEntity.getFooter())
-                                                                                                                                .build())
-                                                                                                                        .sorted(Comparator.comparingInt(Details::getSequenceId))
-                                                                                                                        .toList();
+                                                                                                                
+                                                                                                                List<Details> detailsList;
+                                                                                                                if (filteredDetails != null && !filteredDetails.isEmpty()) {
+                                                                                                                    detailsList = filteredDetails.stream()
+                                                                                                                            .map(detailEntity -> Details.builder()
+                                                                                                                                    .title(detailEntity.getTitle())
+                                                                                                                                    .instructions(detailEntity.getInstructions())
+                                                                                                                                    .helper(detailEntity.getHelper())
+                                                                                                                                    .subContext(detailEntity.getSubContext())
+                                                                                                                                    .pageNumber(detailEntity.getPageNumber())
+                                                                                                                                    .sequenceId(detailEntity.getSequenceId())
+                                                                                                                                    .footer(detailEntity.getFooter())
+                                                                                                                                    .build())
+                                                                                                                            .sorted(Comparator.comparing(d -> d.getSequenceId() != null ? d.getSequenceId() : 0))
+                                                                                                                            .toList();
+                                                                                                                } else {
+                                                                                                                    detailsList = new ArrayList<>();
+                                                                                                                }
 
                                                                                                                 iqeOutPut.setDetails(detailsList);
 
@@ -320,15 +317,14 @@ public class IQEService implements SchedulingConstants {
                                                     return Mono.just(iqeOutPut);
                                                 });
                                     })
-                                    .doOnSuccess(result -> Mono.fromCallable(() -> redisCacheService.setDataToRedisRest(actionId, result, eventMap))
-                                            .onErrorResume(e -> {
-                                                log.error("Exception in questionnaireByActionId when setting data to redis {}", e.getMessage());
-                                                return Mono.empty();
-                                            })
-                                            .subscribe());
-                        }))
-                        .doOnSuccess(result -> log.debug(EXIT_LOG, methodName)))
-                .onErrorResume(e -> Mono.just(new QuestionareRequest()));
+                                    // Strategy 1: NO per-actionId caching after response
+                                    .doOnSuccess(result -> log.debug("Strategy 1: Cassandra read completed for actionId: {}", actionId));
+        })
+        .doOnSuccess(result -> log.debug(EXIT_LOG, methodName))
+        .onErrorResume(e -> {
+            log.error("Strategy 1: Error in questionnaireByActionId for actionId: {}", actionId, e);
+            return Mono.just(new QuestionareRequest());
+        });
     }
 
     /**
@@ -432,7 +428,7 @@ public class IQEService implements SchedulingConstants {
                                     .stacked(questions.isStacked())
                                     .required(questions.isRequired())
                                     .text(questions.getQuestionText())
-                                    .sequenceId(questions.getSequence_id()).build());
+                                    .sequenceId(questions.getSequence_id() != null ? questions.getSequence_id() : 0).build());
 
                     Flux<AnswerOptions> answerOptionData = answerOptionsRepo.findByActionIdAndQuestionId(actionId, questionId)
                             .map(answerOptions -> AnswerOptions.builder()
@@ -442,7 +438,7 @@ public class IQEService implements SchedulingConstants {
                                     .text(answerOptions.getAnswerText())
                                     .value(answerOptions.getAnswerValue())
                                     .relatedQuestionIds(answerOptions.getRelatedQuestions())
-                                    .sequenceId(answerOptions.getSequence_id())
+                                    .sequenceId(answerOptions.getSequence_id() != null ? answerOptions.getSequence_id() : 0)
                                     .build())
                             .flatMap(answerOptions -> {
                                 if (answerOptions.getRelatedQuestionIds() != null && !answerOptions.getRelatedQuestionIds().isEmpty()) {
@@ -460,7 +456,7 @@ public class IQEService implements SchedulingConstants {
 
                     return questionData.flatMap(qd -> answerOptionData.collectList()
                             .map(aos -> aos.stream()
-                                    .sorted(Comparator.comparingInt(AnswerOptions::getSequenceId))
+                                    .sorted(Comparator.comparingInt(ao -> ao.getSequenceId() != null ? ao.getSequenceId() : 0))
                                     .toList())
                             .map(aos -> {
                                 iqeOutPut.setQuestion(qd);
@@ -526,7 +522,7 @@ public class IQEService implements SchedulingConstants {
                                                                             iqeOutPut.getQuestions().add(question.getQuestion()));
                                                                 })
 
-                                                                .doOnSuccess(questions -> Collections.sort(iqeOutPut.getQuestions(), Comparator.comparingInt(Questions::getSequenceId)))
+                                                                .doOnSuccess(questions -> Collections.sort(iqeOutPut.getQuestions(), Comparator.comparingInt(q -> q.getSequenceId() != null ? q.getSequenceId() : 0)))
                                                                 .thenReturn(iqeOutPut);
                                                     } else {
                                                         return Mono.just(iqeOutPut);
@@ -570,7 +566,7 @@ public class IQEService implements SchedulingConstants {
                     questions.forEach(question -> iqeOutPut.getQuestions().add(question.getQuestion()));
                 })
                 .doOnNext(questions -> Collections.sort(iqeOutPut.getQuestions(),
-                        Comparator.comparingInt(Questions::getSequenceId)))
+                        Comparator.comparingInt(q -> q.getSequenceId() != null ? q.getSequenceId() : 0)))
                 .last()
                 .map(questions -> iqeOutPut);
 

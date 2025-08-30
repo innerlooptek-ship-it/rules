@@ -54,6 +54,11 @@ spring:
   config:
     import:
       - classpath:/dhs-scheduling-messages.yaml
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.servlet.GraphQlWebMvcAutoConfiguration
+      - org.springframework.boot.autoconfigure.graphql.reactive.GraphQlWebFluxAutoConfiguration
 
   mvc:
     throw-exception-if-no-handler-found: true
@@ -71,7 +76,9 @@ spring:
     graphql:
       path: /dhs/scheduling/graphql
       graphiql:
-        enabled: true
+        enabled: false
+      schema:
+        locations: []
     webflux:
       base-path: ""
   data:
@@ -200,6 +207,14 @@ api:
               uri: /schedule/core/v1/appointmentdata
               readTimeout: 1000
               connectionTimeout: 1000
+    consents:
+      getPatientConsents:
+        baseUrl: http://localhost:21141
+        uri: /consents/v1/patient
+        readTimeout: 3000
+        connectionTimeout: 3000
+        userName: test
+        password: test
 
 
 feature:

@@ -25,9 +25,9 @@ public class Details {
     @Schema(description = "instructions")
     private String instructions;
     @Schema(description = "pageNumber")
-    private int pageNumber;
+    private Integer pageNumber;
     @Schema(description = "sequenceId")
-    private int sequenceId;
+    private Integer sequenceId;
     @Schema(description = "subContext")
     private String subContext;
     @Schema(description = "title")
