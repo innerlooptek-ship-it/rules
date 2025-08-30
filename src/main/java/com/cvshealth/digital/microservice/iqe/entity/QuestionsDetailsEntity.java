@@ -32,9 +32,9 @@ public class QuestionsDetailsEntity {
     @Column("instructions")
     private String instructions;
     @Column("page_number")
-    private int pageNumber;
+    private Integer pageNumber;
     @Column("sequence_id")
-    private int sequenceId;
+    private Integer sequenceId;
     @Column("sub_context")
     private String subContext;
     @Column("title")

@@ -94,7 +94,11 @@ public class IQERepoOrchestrator {
                     // Process details with sequence numbers
                     Mono<List<Details>> processedDetails = Flux.fromIterable(request.getDetails())
                             .index()
-                            .flatMap(indexedDetail -> processDetail(indexedDetail.getT2(), actionId, indexedDetail.getT1().intValue() + 1))
+                            .flatMap(indexedDetail -> {
+                                Long index = indexedDetail.getT1();
+                                int sequenceNumber = (index != null ? index.intValue() : 0) + 1;
+                                return processDetail(indexedDetail.getT2(), actionId, sequenceNumber);
+                            })
                             .collectList();
 
                     return Mono.zip(processedQuestions, processedDetails)
@@ -426,8 +430,8 @@ public class IQERepoOrchestrator {
                 .stacked(questionsEntity.isStacked())
                 .required(questionsEntity.isRequired())
                 .helpText(questionsEntity.getHelpText() != null ? questionsEntity.getHelpText() : "")
-                .characterLimit(questionsEntity.getCharacterLimit() != 0 ? questionsEntity.getCharacterLimit() : 0)
-                .sequenceId(questionsEntity.getSequence_id() != 0 ? questionsEntity.getSequence_id() : 0)
+                .characterLimit(questionsEntity.getCharacterLimit())
+                .sequenceId(questionsEntity.getSequence_id() != null ? questionsEntity.getSequence_id() : 0)
                 .linkText(questionsEntity.getLinkText() != null ? questionsEntity.getLinkText() : "")
                 .skipLegend(questionsEntity.getSkiplegend()!= null ? questionsEntity.getSkiplegend() : "")
                 .questionNumber(questionsEntity.getQuestionnumber() != null ? questionsEntity.getQuestionnumber() : 0)
@@ -443,7 +447,7 @@ public class IQERepoOrchestrator {
                 .flatMap(answerOption -> processAnswerOption(answerOption, answerOptionsList, questions))
                 .collectList()
                 .map(answerOptions -> {
-                    answerOptions.sort(Comparator.comparing(AnswerOptions::getSequenceId));
+                    answerOptions.sort(Comparator.comparing(ao -> ao.getSequenceId() != null ? ao.getSequenceId() : 0));
                     question.setAnswerOptions(answerOptions);
                     return question;
                 })
@@ -475,7 +479,7 @@ public class IQERepoOrchestrator {
                 .answerOptionId(answerOption.getAnswerOptionId())
                 .text(answerOption.getAnswerText())
                 .value(answerOption.getAnswerValue())
-                .sequenceId(answerOption.getSequence_id() != 0 ? answerOption.getSequence_id() : 0)
+                .sequenceId(answerOption.getSequence_id() != null ? answerOption.getSequence_id() : 0)
                 .relatedQuestionIds(answerOption.getRelatedQuestions())
                 .additionalDetailText(answerOption.getAdditionalDetailText() != null ? answerOption.getAdditionalDetailText() : "")
                 .build();
@@ -489,7 +493,7 @@ public class IQERepoOrchestrator {
                         // Sort the relatedQuestionsDTO by sequenceId
                         List<Questions> sortedRelatedQuestionsDTO =
                                 relatedQuestionsDTO.stream()
-                                        .sorted(Comparator.comparingInt(Questions::getSequenceId))
+                                        .sorted(Comparator.comparing(q -> q.getSequenceId() != null ? q.getSequenceId() : 0))
                                         .toList();
                         answerOptionsDTO.setRelatedQuestions(sortedRelatedQuestionsDTO);
                     }
@@ -523,8 +527,8 @@ public class IQERepoOrchestrator {
                 .stacked(relatedQuestion.isStacked())
                 .required(relatedQuestion.isRequired())
                 .helpText(relatedQuestion.getHelpText() != null ? relatedQuestion.getHelpText() : "")
-                .characterLimit(relatedQuestion.getCharacterLimit() != 0 ? relatedQuestion.getCharacterLimit() : 0)
-                .sequenceId(relatedQuestion.getSequence_id() != 0 ? relatedQuestion.getSequence_id() : 0)
+                .characterLimit(relatedQuestion.getCharacterLimit())
+                .sequenceId(relatedQuestion.getSequence_id() != null ? relatedQuestion.getSequence_id() : 0)
                 .linkText(relatedQuestion.getLinkText() != null ? relatedQuestion.getLinkText() : "")
                 .skipLegend(relatedQuestion.getSkiplegend()!= null ? relatedQuestion.getSkiplegend() : "")
                 .questionNumber(relatedQuestion.getQuestionnumber() != null ? relatedQuestion.getQuestionnumber() : 0)
@@ -541,7 +545,7 @@ public class IQERepoOrchestrator {
                     // Sort the relatedAnswerOptions by sequenceId
                     List<AnswerOptions> sortedRelatedAnswerOptions =
                             relatedAnswerOptions.stream()
-                                    .sorted(Comparator.comparingInt(AnswerOptions::getSequenceId))
+                                    .sorted(Comparator.comparing(ao -> ao.getSequenceId() != null ? ao.getSequenceId() : 0))
                                     .toList();
                     relatedQuestionDTO.setAnswerOptions(sortedRelatedAnswerOptions);
                     return relatedQuestionDTO;
