@@ -205,20 +205,32 @@ public class IQEService implements SchedulingConstants {
                             }
                         })
                         .switchIfEmpty(Mono.deferContextual(ctx1 -> {
-                            Mono<RulesByFlowEntity> rulesByFlowMono = rulesByFlowRepo.findByActionId(actionId)
-                                    .next()
-                                    .onErrorResume(NoSuchElementException.class, e -> {
-                                        log.info("No RulesByFlow found for actionId: {}", actionId);
-                                        return Mono.empty();
+                            Mono<RulesByFlowEntity> rulesByFlowMono = redisCacheService.getDataFromRedis("RULES_BY_FLOW", "rules_by_flow:" + actionId, eventMap)
+                                    .map(cachedData -> {
+                                        ObjectMapper mapper = new ObjectMapper();
+                                        return mapper.convertValue(cachedData, RulesByFlowEntity.class);
                                     })
+                                    .switchIfEmpty(rulesByFlowRepo.findByActionId(actionId)
+                                            .next()
+                                            .doOnNext(rule -> redisCacheService.setDataToRedisRest("rules_by_flow:" + actionId, rule, eventMap).subscribe())
+                                            .onErrorResume(NoSuchElementException.class, e -> {
+                                                log.info("No RulesByFlow found for actionId: {}", actionId);
+                                                return Mono.empty();
+                                            }))
                                     .defaultIfEmpty(new RulesByFlowEntity());
 
-                            Mono<ActionsEntity> actionsMono = actionsRepo.findByActionId(actionId)
-                                    .next()
-                                    .onErrorResume(NoSuchElementException.class, e -> {
-                                        log.info("No Actions found for actionId: {}", actionId);
-                                        return Mono.empty();
+                            Mono<ActionsEntity> actionsMono = redisCacheService.getDataFromRedis("ACTIONS", "actions:" + actionId, eventMap)
+                                    .map(cachedData -> {
+                                        ObjectMapper mapper = new ObjectMapper();
+                                        return mapper.convertValue(cachedData, ActionsEntity.class);
                                     })
+                                    .switchIfEmpty(actionsRepo.findByActionId(actionId)
+                                            .next()
+                                            .doOnNext(action -> redisCacheService.setDataToRedisRest("actions:" + actionId, action, eventMap).subscribe())
+                                            .onErrorResume(NoSuchElementException.class, e -> {
+                                                log.info("No Actions found for actionId: {}", actionId);
+                                                return Mono.empty();
+                                            }))
                                     .defaultIfEmpty(new ActionsEntity());
 
                             return Mono.zip(rulesByFlowMono, actionsMono)
@@ -373,37 +385,58 @@ public class IQEService implements SchedulingConstants {
     public Mono<QuestionareRequest> questionnaireByFlowAndCondition(RulesDetails rulesDetails, QuestionareRequest iqeOutPut,
                                                                     Map<String, String> headers) {
         return Mono.deferContextual(ctx -> {
-                    Flux<RulesByFlowEntity> ruleAttributesFlux = rulesByFlowRepo.findByFlow(rulesDetails.getFlow());
-
-                    ObjectDataCompiler compiler = new ObjectDataCompiler();
-
-                    return ruleAttributesFlux.collectList()
-                            .flatMap(ruleAttributesList -> {
-                                if (ruleAttributesList != null && !ruleAttributesList.isEmpty()) {
-                                    String generatedDRL = compiler.compile(ruleAttributesList, getClass().getClassLoader()
-                                            .getResourceAsStream(DroolConfig.QUESTIONNAIRE_TEMPLATE_FILE_IQE));
-                                    KieServices kieServices = KieServices.Factory.get();
-                                    KieHelper kieHelper = new KieHelper();
-                                    byte[] b1 = generatedDRL.getBytes();
-                                    Resource resource1 = kieServices.getResources().newByteArrayResource(b1);
-                                    kieHelper.addResource(resource1, ResourceType.DRL);
-                                    KieBase kieBase = kieHelper.build();
-                                    KieSession kieSession = kieBase.newKieSession();
-                                    kieSession.insert(rulesDetails);
-                                    kieSession.fireAllRules(1);
-                                    kieSession.dispose();
-                                    if (rulesDetails.getActionId() != null && !rulesDetails.getActionId().isEmpty()) {
-                                        log.info("Rules Details: {}", rulesDetails);
-                                        return questionnaireByActionId(rulesDetails.getActionId(), iqeOutPut);
-                                    } else {
-                                        return Mono.just(iqeOutPut);
-                                    }
+                    String flowCacheKey = "rules_by_flow:" + rulesDetails.getFlow();
+                    
+                    return redisCacheService.getDataFromRedis("RULES_BY_FLOW", flowCacheKey, headers)
+                            .flatMap(cachedRules -> {
+                                if (cachedRules != null) {
+                                    ObjectMapper mapper = new ObjectMapper();
+                                    List<RulesByFlowEntity> ruleAttributesList = mapper.convertValue(cachedRules, 
+                                        mapper.getTypeFactory().constructCollectionType(List.class, RulesByFlowEntity.class));
+                                    return executeRulesEngine(ruleAttributesList, rulesDetails, iqeOutPut);
                                 } else {
-                                    return Mono.just(iqeOutPut);
+                                    return Mono.empty();
                                 }
-                            });
+                            })
+                            .switchIfEmpty(
+                                rulesByFlowRepo.findByFlow(rulesDetails.getFlow())
+                                        .collectList()
+                                        .flatMap(ruleAttributesList -> {
+                                            if (ruleAttributesList != null && !ruleAttributesList.isEmpty()) {
+                                                redisCacheService.setDataToRedisRest(flowCacheKey, ruleAttributesList, headers)
+                                                        .subscribe();
+                                                
+                                                return executeRulesEngine(ruleAttributesList, rulesDetails, iqeOutPut);
+                                            } else {
+                                                return Mono.just(iqeOutPut);
+                                            }
+                                        })
+                            );
                 })
                 .onErrorResume(e -> Mono.error(new ServerErrorException(FAILURE_CD, e.getMessage())));
+    }
+
+    private Mono<QuestionareRequest> executeRulesEngine(List<RulesByFlowEntity> ruleAttributesList, 
+                                                       RulesDetails rulesDetails, QuestionareRequest iqeOutPut) {
+        ObjectDataCompiler compiler = new ObjectDataCompiler();
+        String generatedDRL = compiler.compile(ruleAttributesList, getClass().getClassLoader()
+                .getResourceAsStream(DroolConfig.QUESTIONNAIRE_TEMPLATE_FILE_IQE));
+        KieServices kieServices = KieServices.Factory.get();
+        KieHelper kieHelper = new KieHelper();
+        byte[] b1 = generatedDRL.getBytes();
+        Resource resource1 = kieServices.getResources().newByteArrayResource(b1);
+        kieHelper.addResource(resource1, ResourceType.DRL);
+        KieBase kieBase = kieHelper.build();
+        KieSession kieSession = kieBase.newKieSession();
+        kieSession.insert(rulesDetails);
+        kieSession.fireAllRules(1);
+        kieSession.dispose();
+        if (rulesDetails.getActionId() != null && !rulesDetails.getActionId().isEmpty()) {
+            log.info("Rules Details: {}", rulesDetails);
+            return questionnaireByActionId(rulesDetails.getActionId(), iqeOutPut);
+        } else {
+            return Mono.just(iqeOutPut);
+        }
     }
 
 

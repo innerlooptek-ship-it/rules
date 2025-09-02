@@ -24,14 +24,8 @@ import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstan
 
 
 @Component
-
-/** The Constant log. */
-@Slf4j
-
-/**
- * Instantiates a new dhs slot management app helper.
- */
 @RequiredArgsConstructor
+@Slf4j
 public class IQERepoOrchestrator {
 
     private final ActionsRepository actionsRepo;
@@ -257,19 +251,35 @@ public class IQERepoOrchestrator {
                 iqeResponse.setStatusCode("0000");
                 iqeResponse.setStatusDescription(("Data inserted successfully"));
                 iqeResponse.setActionId(questionareRequest.getRulesByFlow().getActionId());
+                
+                String actionId = questionareRequest.getRulesByFlow().getActionId();
+                String flow = questionareRequest.getRulesByFlow().getFlow();
+                
+                Map<String, String> redisEventMap = new HashMap<>();
+                eventMap.forEach((key, value) -> redisEventMap.put(key, value != null ? value.toString() : null));
+                
+                String flowCacheKey = "rules_by_flow:" + flow;
+                rulesByFlowRepo.findByFlow(flow).collectList()
+                        .flatMap(rules -> redisCacheService.setDataToRedisRest(flowCacheKey, rules, redisEventMap))
+                        .subscribe();
+                
+                String actionsCacheKey = "actions:" + actionId;
+                redisCacheService.setDataToRedisRest(actionsCacheKey, t.getT2(), redisEventMap).subscribe();
+                
+                String questionsCacheKey = "questions:" + actionId;
+                redisCacheService.setDataToRedisRest(questionsCacheKey, t.getT3(), redisEventMap).subscribe();
+                
+                String answerOptionsCacheKey = "answer_options:" + actionId;
+                redisCacheService.setDataToRedisRest(answerOptionsCacheKey, t.getT4(), redisEventMap).subscribe();
+                
+                String detailsCacheKey = "questions_details:" + actionId;
+                redisCacheService.setDataToRedisRest(detailsCacheKey, t.getT5(), redisEventMap).subscribe();
+                
                 return Mono.just(iqeResponse);
             }).onErrorResume(e -> {
                 log.error("Error inserting data", e);
                 eventMap.put("DBInsertStatus", "FAILED");
                 return Mono.error(new ServerErrorException(FAILURE_CD, e.getMessage()));
-            }).flatMap(iqeOutPuts -> {
-                Map<String, String> reqHdrMap = new HashMap<>();
-                questionareRequest.getRulesByFlow().setUpdate(false);
-                return Mono.defer(() -> redisCacheService.setDataToRedisRest(questionareRequest.getRulesByFlow().getActionId(),
-                         questionareRequest, reqHdrMap)).onErrorResume(e -> {
-                    log.error("Error setting data to redis in insertQuestionsIntoDB", e.getMessage());
-                    return Mono.error(new RedisServerException(FAILURE_CD, e.getMessage()));
-                });
             }).then();
         });
     }

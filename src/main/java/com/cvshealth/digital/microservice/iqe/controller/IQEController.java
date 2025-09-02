@@ -8,6 +8,7 @@ import com.cvshealth.digital.microservice.iqe.model.IQEResponse;
 import com.cvshealth.digital.microservice.iqe.model.Questions;
 import com.cvshealth.digital.microservice.iqe.model.RulesDetails;
 import com.cvshealth.digital.microservice.iqe.service.IQEService;
+import com.cvshealth.digital.microservice.iqe.dto.IQEMcCoreQuestionnarieRequest;
 import com.cvshealth.digital.microservice.iqe.utils.LoggingUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -29,16 +31,22 @@ import static com.cvshealth.digital.microservice.iqe.constants.SchedulingConstan
 
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/schedule/iqe/v1/")
 @Validated
 @Slf4j
 @CrossOrigin
 public class IQEController {
 
-    private final IQEService iqeService;
+    @Autowired(required = false)
+    private IQEService iqeService;
+    
     private final LoggingUtils loggingUtils;
     private final Map<String, String> errorMessages;
+    
+    public IQEController(LoggingUtils loggingUtils, Map<String, String> errorMessages) {
+        this.loggingUtils = loggingUtils;
+        this.errorMessages = errorMessages;
+    }
 
     @Operation(summary = "Gets the IQE Questionnaires", description = "This service is used to get IQE Questionnaire")
     @ApiResponses(
@@ -332,31 +340,29 @@ public class IQEController {
         QuestionareRequest iqeOutPut=new QuestionareRequest();
 
         return Mono.deferContextual(
-                ctx ->
-                        iqeService.questionnaireByFlowAndCondition(rulesDetails, iqeOutPut, headers)
-                                .onErrorResume(error -> {
-                                    if (error instanceof CvsException) {
-                                        return Mono.error(error);
-                                    }
-                                    return Mono.error(
-                                            new CvsException(
-                                                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                                    ERROR_INTERNAL_SERVER_ERROR,
-                                                    errorMessages.get(INTERNAL_SERVER_ERROR_MESSAGE),
-                                                    errorMessages.get(INTERNAL_SERVER_ERROR_MESSAGE),
-                                                    error.getMessage()
-                                            )
-                                    );
-                                })
-                                .doFinally(response -> {
-                                    long endTime = System.currentTimeMillis();
-                                    if (rulesDetails.getFlow() != null && !rulesDetails.getFlow().isEmpty()) {
-                                        eventMap.put(FLOW, rulesDetails.getFlow());
-                                    }
-                                    eventMap.put(RESP_TIME, endTime - lStart);
-                                    loggingUtils.exitEventLogging(log, eventMap);
-                                })
-        );
+                ctx -> iqeService.questionnaireByFlowAndCondition(rulesDetails, iqeOutPut, headers))
+                .onErrorResume(error -> {
+                    if (error instanceof CvsException) {
+                        return Mono.error(error);
+                    }
+                    return Mono.error(
+                            new CvsException(
+                                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                    ERROR_INTERNAL_SERVER_ERROR,
+                                    errorMessages.get(INTERNAL_SERVER_ERROR_MESSAGE),
+                                    errorMessages.get(INTERNAL_SERVER_ERROR_MESSAGE),
+                                    error.getMessage()
+                            )
+                    );
+                })
+                .doFinally(response -> {
+                    long endTime = System.currentTimeMillis();
+                    if (rulesDetails.getFlow() != null && !rulesDetails.getFlow().isEmpty()) {
+                        eventMap.put(FLOW, rulesDetails.getFlow());
+                    }
+                    eventMap.put(RESP_TIME, endTime - lStart);
+                    loggingUtils.exitEventLogging(log, eventMap);
+                });
     }
 
     @Operation(summary = "Get the question based on action Id and Question Id", description = "This service is used to Get the question based on action Id and Question Id")
@@ -527,4 +533,5 @@ public class IQEController {
                                 })
         );
     }
+
 }
